@@ -305,6 +305,7 @@ TSWLatexianTemp*
 # Uncomment the next line to have this generated file ignored.
 #*Notes.bib
 
-Assignment1-checkpoint.ipynb
+*.ipynb_checkpoints
 *.pdf
 Assignment1/~$DryBeanDataSet.xlsx
+*__pycache__

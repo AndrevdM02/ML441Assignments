@@ -122,10 +122,10 @@ class ClassificationTree:
 
         split_info_value = -np.sum(probs * np.log2(probs + 1e-5))
 
-        missing_value_fraction = feature_values.isna().mean()
+        # missing_value_fraction = feature_values.isna().mean()
 
-        if missing_value_fraction > 0:
-            split_info_value -= missing_value_fraction * math.log2(missing_value_fraction + 1e-5)
+        # if missing_value_fraction > 0:
+        #     split_info_value -= missing_value_fraction * math.log2(missing_value_fraction + 1e-5)
 
         return split_info_value
     
@@ -430,27 +430,31 @@ class ClassificationTree:
         except ImportError:
             raise ImportError("Graphviz is required for tree visualization")
 
-        def add_nodes_edges(dot, node, parent_name=None):
+        def add_nodes_edges(dot, node, parent_name=None, branch_value=None):
             node_id = str(id(node))  # Unique identifier for each node
 
             if node.is_leaf:
                 # If the node is a leaf, create a box with the class prediction
-                dot.node(node_id, label=f'Class: {node.prediction}', shape='box', style='filled', color='lightgreen')
+                dot.node(node_id, label=f'<<B>{node.prediction}</B>>', shape='box', style='filled', color='lightgreen')
             else:
                 # If the node is not a leaf, create an ellipse with the feature name
-                dot.node(node_id, label=f'Feature: {node.test}', shape='rectangle')
+                dot.node(node_id, label=f'<<B>{node.test}</B>>', shape='rectangle')
 
             if parent_name:
                 # Draw an edge from the parent node to the current node
-                dot.edge(parent_name, node_id)
+                dot.edge(parent_name, node_id, label=f'{str(branch_value)}')
 
             # Recursively add children nodes
             for branch_value, child_node in node.branches.items():
-                add_nodes_edges(dot, child_node, node_id)
+                add_nodes_edges(dot, child_node, node_id, branch_value=branch_value)
 
         dot = Digraph()
         dot.attr(dpi='100')  # Adjust DPI if needed
-        dot.attr('node', shape='ellipse')  # Set default node shape
+        dot.attr(nodesep='0.5')  # Adjust node separation
+        dot.attr(ranksep='3.0')  # Adjust level separation
+        dot.attr(size='5,5')  # Adjust overall size
+        dot.attr('node', shape='ellipse', fontsize='20')  # Set default node shape
+        # dot.attr('edge', fontsize='20')
         add_nodes_edges(dot, self.root)
         return dot
 
