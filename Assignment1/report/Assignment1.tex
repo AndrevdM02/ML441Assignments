@@ -17,13 +17,20 @@
 
 \makeglossaries
 
+\newacronym{ann}{ANN}{all k-nearest neighbour}
+\newacronym{cews}{CEWS}{cut edges weight statistic}
 \newacronym{cart}{CART}{classification and regression trees}
 \newacronym{eda}{EDA}{exploratory data analysis}
+\newacronym{enn}{ENN}{edited nearest neighbour}
 \newacronym{id3}{ID3}{iterative dichotomiser 3}
+\newacronym{iqr}{IQR}{Interquartile Range}
 \newacronym{knn}{KNN}{k-nearest neighbours}
 \newacronym{mar}{MAR}{missing at random}
 \newacronym{mcar}{MCAR}{missing completely at random}
+\newacronym{nan}{NaN}{not a number}
 \newacronym{ni}{NI}{nonignorable}
+\newacronym{renn}{RENN}{repeated edited nearest neighbour}
+\newacronym{smote}{SMOTE}{synthetic minority oversampling technique}
 
 
 \begin{document}
@@ -49,7 +56,14 @@
 
 \section{Introduction}
 
-
+\begin{itemize}
+    \item Context: Begin by explaining the importance of data quality in machine learning and the relevance of classification algorithms like KNN and classification trees in the context of the DryBeanDataSet.
+    \item Goals: State that the main goal is to identify and address data quality issues and develop two predictive models to classify dry beans.
+    \item Approach: Briefly outline the steps taken: characterizing the dataset, identifying and addressing data quality issues, applying the KNN and classification tree algorithms, and evaluating their performance.
+    \item Motivation: Explain why this study is important, such as improving the accuracy of classification models in agricultural datasets.
+    \item Main Observations: Summarize the key findings, such as which model performed better and how data quality issues impacted the results.
+    \item Outline: Provide a brief overview of the structure of the report, mentioning the sections that follow.
+\end{itemize}
 
 \section{Background}
 
@@ -57,7 +71,7 @@ This section presents background information on \\ \acrlong{eda} and techniques 
 for analysis or to construct models. Additionally, information on the C4.5 decision tree and k-nearest neighbours
 classification models.
 
-\subsection{Exploratory Data Analysis}\label{EDA}
+\subsection{Exploratory Data Analysis}\label{EDA_background}
 
 Exploratory data analysis \acrshort{eda} first introduced by John Tukey in 1977 \cite{EDA_ref}. Tukey
 emphasised that there are three key strategies in data analysis, namely:
@@ -100,9 +114,9 @@ and the mean is used when the data contains no outliers.
 
 \paragraph{Outliers}
 
-When one or more variables, of an instance in the data set, have values that significantly differ from the overall distribution
+When one or more variables, of an instance in the dataset, have values that significantly differ from the overall distribution
 of the data, it is known as an outlier. There are two types of outliers, namely invalid outliers that is data points included
-in the data set due to errors, and valid outliers that is correct values that are legitimately different from the rest
+in the dataset due to errors, and valid outliers that is correct values that are legitimately different from the rest
 of the data.
 
 There are three techniques to cope with outliers. The first technique is to remove the outliers using statistical
@@ -111,17 +125,153 @@ influence of the outliers. Alternatively, clipping can be performed to the outli
 or to impute a value to replace the outlier with. The third technique is to remove the outliers directly within the
 machine learning process by the use of algorithms designed to be robust to outliers.
 
-One approach to perform outlier detection 
+One approach to perform outlier detection is by the use of a statistical method known as the \acrfull{iqr} method.
+The equation to calculated the \acrshort{iqr} of an input feature $\boldsymbol{\textbf{p}}$, is as follows:
+\begin{equation}
+    IQR^{\boldsymbol{\textbf{p}}} = Q_3^{\boldsymbol{\textbf{p}}} - Q_1^{\boldsymbol{\textbf{p}}} \label{IQR}
+\end{equation}
+where $Q_1^{\boldsymbol{\textbf{p}}}$ and $Q_3^{\boldsymbol{\textbf{p}}}$ is the first and third quartile of the input
+feature ${\boldsymbol{\textbf{p}}}$ respectively. The equations to determine if an instance of ${\boldsymbol{\textbf{p}}}$
+is an outlier, is as follows:
+\begin{equation}
+    \boldsymbol{\textbf{p}}_i < Q_1^{\boldsymbol{\textbf{p}}} - 1.5 \times IQR^{\boldsymbol{\textbf{p}}} \label{outlier_smaller}
+\end{equation}
+or if:
+\begin{equation}
+    \boldsymbol{\textbf{p}}_i > Q_3^{\boldsymbol{\textbf{p}}} + 1.5 \times IQR^{\boldsymbol{\textbf{p}}} \label{outlier_larger}
+\end{equation}
+where $\boldsymbol{\textbf{p}}_i$ is the $i$-th instance of the input feature ${\boldsymbol{\textbf{p}}}$.
+
+Another technique to apply outlier detection is by using visual methods such as a boxplot, that displays the
+distribution of data based on quartiles and highlights potential outliers, or by using a scatter plot to visualise
+the the relationship between two features and can reveal outliers as points that deviate significantly from the
+overall pattern.
 
 \paragraph{Noise}
 
+Noise refers to random or irrelevant variations in the data that can obscure patterns. There is two types of noise.
+The first typeof noise is stochastic noise, with random variation in data values, a zero mean in the variation and
+small deviations. If the deviation of stochastic noise is large, the feature becomes irrelevant. The second type
+of noise is systematic noise, where all values shifted in a particular direction, such as due to poorly calibrated
+instruments.
+
+When handeling noise, systematic noise can be corrected by use of a few different techniques. One technique is to
+make use of standardisation. Stochastic noise is handled by the machine learning process, but caution should be
+used as if noise is present and the model is too complex, the model will overfit.
+
+There are a few techniques used to remove noise in the dataset, namely \acrfull{enn}, \acrfull{renn}, \acrfull{ann},
+\acrfull{cews} and Tomek links. A Tomek link is a pair of data instances $\boldsymbol{\textbf{a}}$ and
+$\boldsymbol{\textbf{b}}$ where there exists a third instance $\boldsymbol{\textbf{c}}$ such that:
+\begin{equation}
+    d(\boldsymbol{\textbf{a}}, \boldsymbol{\textbf{c}}) \leq d(\boldsymbol{\textbf{a}}, \boldsymbol{\textbf{b}}) \label{tomek_1}
+\end{equation}
+or
+\begin{equation}
+    d(\boldsymbol{\textbf{b}}, \boldsymbol{\textbf{c}}) \leq d(\boldsymbol{\textbf{a}}, \boldsymbol{\textbf{b}}) \label{tomek_2}
+\end{equation}
+where $d$ is the distance between the two instances.
+
+If $\boldsymbol{\textbf{a}}$ and $\boldsymbol{\textbf{b}}$ forma Tomek link, then either one of them is noise
+or both are borderline cases. In such cases both $\boldsymbol{\textbf{a}}$ and $\boldsymbol{\textbf{b}}$
+is removed to improve the quality of the dataset.
+
 \paragraph{Imbalanced class data}
+
+A dataset is refered to as imbalanced, if the target feature has significantly unequal
+representation among its different categories. A few approaches to handel imbalanced classes are, do to
+nothing, but this is not a great solution, as the train and test accuracy of the majority class may be
+very good and the train and test accuracy of the minority class will be bad. Another approach to
+handel imbalanced classes is to balance the training set by either the use of \acrfull{smote}
+to oversample the minority class or the use of Tomek links to undersampl the majority class.
+
+By using Tomek links as described in Equation \eqref{tomek_1} and Equation \eqref{tomek_2}, it is possible
+to obtain Tomek links between classes and to then remove the majority class from each Tomek link.
+
+\acrshort{smote} is used to oversample the minority class. The process of \acrshort{smote} is to
+firstly ignore the majority class. The next step is to choose the \acrshort{knn} for each minority
+instance. \acrshort{smote} then produces new instances halfway between the the instance and the
+neighbours.
 
 \subsubsection{Data Preparation}
 
 \paragraph{Data type transformations}
 
+Different machine learning algorithms have varying requirements for the types of input data. This necessitates
+the conversion of the data from one type to another.
+
+Discretisation is the process of converting continuous features to discrete features by the creation of bins
+that group the continuous values into distinct categories. Each bin represents a specific range derived from the
+the original continuous features. There is a general trade-off when a decision has to be made about the number of
+bins to use. This trade off is that valuable information may be lossed, if the number of bins is very low and
+if the number of bins is high, there might be very few instances in each bin or a bin could end up being empty.
+
+There are typically two methods to encode discrete feature as a numerical Feature. The first method is known as
+ordinal encoding. Ordinal encoding transforms discrete features that typically has a natural order into continuous
+features. An example of this is that if the unique values of a discrete feature is cold, mild and high will be
+encoded as 0, 1 and 2 respectively.
+
+One hot encoding is typically used when there is no natural order of the unique values of the discrete feature.
+If the unique values are cloudy, sunny and rainy, the values will be encoded as 1 0 0 for cloudy, 0 1 0 for
+sunny and 0 0 1 for rainy.
+
+
 \paragraph{Feature selection}
+
+The goal of any feature selection method is to find the smallest subset of informative features that
+preserves the overall performance of the model. A smaller subset of features is beneficial as the
+models fitted to the data will be simpler. The smaller set of features will also produce shorter
+train times and produce less overfitted models, therefore improving the generalisation of a model.
+
+If the subset of features contains too few features, the model may underfit due to the lack of
+discriminant power to differentiate between classes. An underfitted model leads to more false
+positives and false negatives. Too many features in the new subset of features can introduce
+noise in the training data, causing the model to overfit and increase computational complexity.
+
+There are four types of different descriptive features to distinguish from, namely:
+\begin{itemize}
+    \item \textbf{Predictive} descriptive feature that provides useful information.
+    \item \textbf{Interacting} descriptive feature is not informative about the target feature on its own,
+          but can provide valuable information when combined with one or more other features.
+    \item \textbf{Redundant} descriptive feature that has a strong correlation with another feature.
+    \item \textbf{Irrelevant} descriptive feature that does not provide any useful information when a value
+           is estimated for the target feature.
+\end{itemize}
+Ideally, after a feature selection approach is applied, will the subset of features include the predictive and
+interacting features while the irrelevant and redundant features are excluded.
+
+There are three methods to perform subset selection on a dataset, namely filter methods, wrapper methods and
+embedded methods. Filter methods performs statistical tests between input feature and target feature to
+identify a subset of features that are more relevant than others. The statistical test to apply types
+of input features to a specific type of target feature is represented by Table \ref{tab:feature_selection_table}.
+\begin{table}[h!]
+    \caption{Statistical Tests for Evaluating Different Types of Input Features Against a Specific Type of Target Feature}
+    \begin{center}
+        \begin{tabular}{|c||c|c|}
+            \hline
+            \textbf{Feature}&\multicolumn{2}{|c|}{\textbf{Target Feature Type}} \\
+            \cline{2-3} 
+            \textbf{Type} & \textbf{\textit{Continuous}}& \textbf{\textit{Categorical}} \\
+            \hline
+            \textbf{\textit{Continuous}}& Pearson Correlation& LDA\\
+            \hline
+            \textbf{\textit{Categorical}}& Anova & Chi-Square\\
+            \hline
+            % \multicolumn{3}{l}{$^{\mathrm{a}}$Sample of a Table footnote.}
+        \end{tabular}
+        \label{tab:feature_selection_table}
+    \end{center}
+\end{table}
+
+Two common approaches to apply the wrapper feature selection technique is by the use of forward and backward
+feature selection that produces a best subset of features to train the model on. In forward and backward feature
+selection a feature is added or removed to the best subset of features respectively and then the performance
+of the model is compared when using the best subset of features and the best subset of features that has been
+modified.
+
+Embedded subset selection techniques is when an algorithm has a build in feature to perform subset selection.
+Models like decision trees prune away splits on features that has little to no predictive power and techniques
+like regularisation is applied to the objective function of a model to reduce the predictive
+power of features that has little to no influence when predicting a target feature.
 
 \paragraph{Normalisation}
 
@@ -129,9 +279,19 @@ Normalisation or scaling of input features is required for some machine learning
 is typically required if the ranges of values for different input features differ in order of magnitudes 
 and where the algorithm makes use of a distance based metric to generate classification
 models. Normalisation is also used when the minimum and maximum values are not known, to
-reduce the effect of outliers or to transform a range of values to a different range of values.
+reduce the effect of outliers or to transform a range of values to a different range of values. One method
+of normalisation typically used is the Z-score normalisation also known as standardisation. The equation to
+perform standardisation is as follows:
+\begin{equation}
+    Z_{i,j} = \frac{x_{i,j} - \mu_j}{\sigma_j} \label{standardisation}
+\end{equation}
+where $x_{i,j}$ is the data value of the $j$-th feature for the $i$-th observation, $\mu_j$ and $\sigma_j$
+is the mean and standard deviation of the $j$-th feature across all observations respectively and $Z_{i,j}$
+is the Z-score of the data value at the $i$-th observation and the $j$-th feature.
 
-\subsection{K-Nearest Neighbours}\label{KNN}
+Standardisation transform all of the values of each feature to have a zero-mean and a unit variance.
+
+\subsection{K-Nearest Neighbours}\label{KNN_background}
 
 The \acrfull{knn} algorithm was first propsed by Evelyn Fix and Joseph Hodges in 1951 \cite{KNN_ref}
 in a technical report that was never published. The report contained pioneering work on nonparametric
@@ -175,7 +335,7 @@ a distance vector $\boldsymbol{\textbf{d}}$ is obtained. The distance vector is 
 and the first $k$ distances is chosen from $\boldsymbol{\textbf{d}}$. The process to classify an unseen instance,
 $\boldsymbol{\textbf{x}}$, on $k$ of the instances of the training set $D$ is described by Algorithm \ref{alg:KNN_algorithm}.
 \begin{algorithm}
-\caption{k-Nearest Neighbors (kNN)}
+\caption{k-Nearest Neighbours (kNN)}
 \label{alg:KNN_algorithm}
 \begin{algorithmic}[1]
     \Function{kNN}{$D$, $\boldsymbol{\textbf{x}}$, $k$}
@@ -189,7 +349,7 @@ $\boldsymbol{\textbf{x}}$, on $k$ of the instances of the training set $D$ is de
 \end{algorithmic}
 \end{algorithm}
 
-\subsection{C4.5 Decision Trees}\label{CT}
+\subsection{C4.5 Decision Trees}\label{CT_background}
 
 The first implementation of a decision tree algorithm was introduced by Leo Brieman \textit{et al} in 1984 and
 is know as \acrfull{cart} \cite{CART_ref}. In 1986 Ross Quinlan implemented the \acrfull{id3} decision tree
@@ -204,7 +364,7 @@ C4.5 generates a classification tree model that consists of:
 \end{itemize}
 C4.5 is induced to overfit the training data, thus the tree classifier completely separates the classes of the
 training data and leads to poor generalisation on usneen data as well as outliers and noise will be in the leaves of
-the tree. In order to overcome these issues, C4.5 introduced post-pruning. 
+the tree.
 
 C4.5 uses entropy as a measure of impurity in a dataset with respect to the target feature. The entropy of a
 dataset will be 0, if all of the classes in the dataset has the same labels. If the frequency of the
@@ -237,7 +397,7 @@ The equation used to calculate the information gain if $D$ is partitioned on $x$
 \begin{equation}
     gain(x) = H(D) - H_x(D)\label{info_gain}
 \end{equation}
-The information gain calculation \eqref{info_gain} favours input features with many outcomes and introduces bias as the tree
+The information gain calculation favours input features with many outcomes and introduces bias as the tree
 creates multiple branches, one for each unique value. The solution to the bias is to normalise the information gain with entropy
 with respect to test outcomes. The equation for the gain ratio is as follows:
 \begin{equation}
@@ -248,12 +408,13 @@ and:
     splitInfo(x) = -\sum_{o=1}^{O}p_o log_O(p_o)\label{splitInfo}
 \end{equation}
 where $F$ is the fraction of patterns in $D$ for which the value of $x$ is missing.
-The objective of the tree is to select $x$ that maximise the gain ratio \eqref{gainRatio}
+The objective of the tree is to select $x$ that maximise the gain ratio.
 
 In order to handel numerical continuous features, C4.5 first sorts the number of unique values, denoted by $I$,
 found in the numeric input feature $x$ to create the sequence, $(v_1,v_2,...,v_I)$ ordered from smallest to largest.
-C4.5 performs $I$-1 splits between $v_i$ and $v_{i+1}$ and for each of these splits the information gain is calculated \eqref{gainRatio}.
-The split with the highest calculated information gain will be chosen and the threshold to split the tree on is calculated as follows:
+C4.5 performs $I$-1 splits between $v_i$ and $v_{i+1}$ and for each of these splits the information gain is calculated by use of
+Equation \eqref{gainRatio}. The split with the highest calculated information gain will be chosen and the threshold to
+split the tree on is calculated as follows:
 \begin{equation}
     \epsilon = \frac{v_i + v_{i+1}}{2}\label{numeric}
 \end{equation}
@@ -275,10 +436,10 @@ where the probability of the outcome is now calculated as follows:
 
 To determine the optimal input feature $x$ to split the data on, the process follows these steps:
 \begin{itemize}
-    \item Calculate the entropy of the current data set, $H(D)$ \eqref{entropy}
-    \item Compute the conditional entropy for each input feature $x$, $H_x(D)$ \eqref{entropy_x}
-    \item Calculate the information gain for each feature if $D$ would be split on $x$ \eqref{info_gain}
-    \item Using the calculated information gain, calculate the gain ratio \eqref{gainRatio}
+    \item Calculate the entropy of the current dataset, $H(D)$ by use of Equation \eqref{entropy}
+    \item Compute the conditional entropy for each input feature $x$, $H_x(D)$ by use of Equation \eqref{entropy_x}
+    \item Calculate the information gain for each feature if $D$ would be split on $x$ by use of Equation \eqref{info_gain}
+    \item Using the calculated information gain, calculate the gain ratio by use of Equation \eqref{gainRatio}
     \item Select the feature with the highest gain ratio and split $D$ into $O$ subsets
     \item Repeat the process on each subset until the tree has been induced to completely separate the classes
 \end{itemize}
@@ -306,17 +467,58 @@ Algorithm \ref{alg:CTI_algorithm} describes the process to fully induce the deci
     \end{algorithmic}
 \end{algorithm}
 
-\section{Methodology}
-
-\subsection{Classification Tree}
-
-C4.5 replaces the tests in the deepest level of the tree with leaf nodes,
-where the prediction of the leaf node is the class that occurs the most in the new subset.
+In order to overcome the issues of the fully induced tree that overfits the training data, as well as outliers and
+noise in the leaves of the tree, C4.5 introduced post-pruning. C4.5 replaces the tests in the deepest level
+of the tree with leaf nodes, where the prediction of the leaf node is the class that occurs the most in the new subset.
 A validation set is used to test the generalisation performance of unseen data and if the generalisation performance
 increases, the tree prunes away the decision node and replaces it with the leaf node. If the generalisation performance
 does not improve, the decision node is then re-inserted into the tree. This process is repeated until no more decision
-nodes are replaced. The tree is now robust to outliers and noise 
+nodes are replaced. The tree is now robust to outliers and noise.
 
+\section{Methodology}
+
+This section provides the approach taken to explore and analyse the dry beans dataset to identify and address data quality
+issues. Additionally, it details the methodology used to classify dry bean types through the use of a \acrshort{knn}
+and classification tree model.
+
+\subsection{Data Overview}
+
+The structure and characteristics of the Dry Beans dataset are thoroughly investigated. The details on the number of instances
+and types of features are investigated to provide a foundational understanding for the subsequent data analysis.
+
+The Dry Bean dataset contains 13611 instances and 22 features. Among these features, 19 are numerical features and 3 are
+categorical features, with the `Class' feature being the target feature. A closer examination reveals that
+missing values in the dataset are represented by `?'. Missing values identified by `?' is very problematic as it changes
+the continuous features containing missing values into discrete features. The dataset is modified so that each instance
+of a missing value is changed from `?' to a value of \acrfull{nan}. The next step is to identify some important
+characteristics of each feature and investigate these characteristics. The important characteristics of each
+continuous feature are summarised in Table \ref{tab:continuous features}.
+
+Several points of interest emerge after a closer examination of Table \ref{tab:continuous features}. The first
+observation made is that the feature `Sort Order' feature has a cardinality of 13611, a minimum of approximately 0,
+a first quartile value of approximately 0.25, a mean of approximately 0.5, a third quartile of approximately 0.75 and
+a maximum value of approximately 1. These statistics all indicate that `Sort Order' is a unique identifier or index.
+As a result, `Sort Order' may be considered as an irrelevant feature for predictive modeling purpose.
+
+
+
+\subsection{K-Nearest Neighbours}
+
+\paragraph{Data preparation}
+
+Data preparation is a very crucial step that must be completed before the \acrshort{knn} algorithm can be applied to the Dry
+Bean dataset.
+
+\paragraph{\acrshort{knn} model implementation}
+
+\subsection{Classification Tree}
+
+\paragraph{Data preparation}
+
+Data preparation is a very crucial step that must be completed before the classification tree algorithm can be applied to the
+Dry Bean dataset.
+
+\paragraph{Classification Tree model implementation}
 
 \section{Empirical Procedure}
 \section{Research Results}
@@ -366,7 +568,7 @@ nodes are replaced. The tree is now robust to outliers and noise
 
         \hline
     \end{tabular}
-    \label{continuous features}
+    \label{tab:continuous features}
     \end{center}
 \end{table}
 
@@ -385,7 +587,7 @@ nodes are replaced. The tree is now robust to outliers and noise
 
         \hline
     \end{tabular}
-    \label{categorical features}
+    \label{tab:categorical features}
     \end{center}
 \end{table}
 
