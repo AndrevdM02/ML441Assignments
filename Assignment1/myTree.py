@@ -138,7 +138,7 @@ class ClassificationTree:
         if not valid_features:
             return None
 
-        n_jobs = -1
+        n_jobs = 4
 
         results = Parallel(n_jobs=n_jobs)(
             delayed(self.compute_feature_score)(X,y,feature) for feature in valid_features
@@ -481,10 +481,16 @@ class ClassificationTree:
         # Predict class labels for X
         y_pred = self.predict(X)
 
+        f1_weighted = f1_score(y, y_pred, average='weighted')
+
+        f1_macro = f1_score(y, y_pred, average='macro')
+
+        f1_micro = f1_score(y, y_pred, average='micro')
+
         # Calculate the accuracy by comparing predicted labels with the true labels
         accuracy = np.mean(y_pred == y)
 
-        return accuracy
+        return accuracy, f1_weighted, f1_macro, f1_micro
     
 class Tuning:
 
@@ -503,6 +509,9 @@ class Tuning:
         kf = KFold(n_splits=k, shuffle=True, random_state=self.random_state)
 
         scores = []
+        f1_weighted_scores = []
+        f1_macro_scores = []
+        f1_micro_scores = []
 
         for train_index, val_index in kf.split(X):
             X_train, X_val = X.iloc[train_index], X.iloc[val_index]
@@ -513,25 +522,43 @@ class Tuning:
             tree.fit(X_train, y_train)
 
             # Evaluate the decision tree on the validation fold
-            score = tree.score(X_val, y_val)
+            score, f1_weighted, f1_macro, f1_micro = tree.score(X_val, y_val)
             scores.append(score)
+            f1_weighted_scores.append(f1_weighted)
+            f1_macro_scores.append(f1_macro)
+            f1_micro_scores.append(f1_micro)
 
         # Calculate the mean score across all folds
         mean_score = np.mean(scores)
+        mean_f1_weighted_scores = np.mean(f1_weighted_scores)
+        mean_f1_macro_scores = np.mean(f1_macro_scores)
+        mean_f1_micro_scores = np.mean(f1_micro_scores)
 
-        return scores, mean_score
+        return scores, mean_score, f1_weighted_scores, mean_f1_weighted_scores, f1_macro_scores, mean_f1_macro_scores, f1_micro_scores, mean_f1_micro_scores
     
     def grid_search(self, X, y, depth_list, split_list, k=5):
         scores_list = []
         means_list = []
+        f1_weighted_list = []
+        f1_weighted_means_list = []
+        f1_macro_list = []
+        f1_macro_mean_list = []
+        f1_micro_list = []
+        f1_micro_mean_list = []
 
         for depth in tqdm(depth_list, "Calculating Trees"):
             for split in split_list:
-                scores, mean_score = self.cross_val_score(X,y,k,depth,split)
+                scores, mean_score, f1_weighted_scores, mean_f1_weighted_scores, f1_macro_scores, mean_f1_macro_scores, f1_micro_scores, mean_f1_micro_scores = self.cross_val_score(X,y,k,depth,split)
                 scores_list.append(scores)
                 means_list.append(mean_score)
+                f1_weighted_list.append(f1_weighted_scores)
+                f1_weighted_means_list.append(mean_f1_weighted_scores)
+                f1_macro_list.append(f1_macro_scores)
+                f1_macro_mean_list.append(mean_f1_macro_scores)
+                f1_micro_list.append(f1_micro_scores)
+                f1_micro_mean_list.append(mean_f1_micro_scores)
 
-        return scores_list, means_list
+        return scores_list, means_list, f1_weighted_list, f1_weighted_means_list, f1_macro_list, f1_macro_mean_list, f1_micro_list, f1_micro_mean_list
     
     def readable_scores(self, scores, depth_list, split_list):
         count = 0

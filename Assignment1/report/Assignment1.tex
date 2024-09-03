@@ -24,6 +24,8 @@
 \newacronym{cart}{CART}{classification and regression trees}
 \newacronym{eda}{EDA}{exploratory data analysis}
 \newacronym{enn}{ENN}{edited nearest neighbour}
+\newacronym{fp}{FP}{false positive}
+\newacronym{fn}{FN}{false negative}
 \newacronym{id3}{ID3}{iterative dichotomiser 3}
 \newacronym{iqr}{IQR}{Interquartile Range}
 \newacronym{knn}{KNN}{k-nearest neighbours}
@@ -33,7 +35,8 @@
 \newacronym{ni}{NI}{nonignorable}
 \newacronym{renn}{RENN}{repeated edited nearest neighbour}
 \newacronym{smote}{SMOTE}{synthetic minority oversampling technique}
-
+\newacronym{tp}{TP}{true positive}
+\newacronym{tn}{TN}{true negative}
 
 \begin{document}
 
@@ -217,7 +220,7 @@ If the unique values are cloudy, sunny and rainy, the values will be encoded as 
 sunny and 0 0 1 for rainy.
 
 
-\paragraph{Feature selection}
+\paragraph{Feature selection} \label{feature_selection background}
 
 The goal of any feature selection method is to find the smallest subset of informative features that
 preserves the overall performance of the model. A smaller subset of features is beneficial as the
@@ -477,6 +480,80 @@ increases, the tree prunes away the decision node and replaces it with the leaf 
 does not improve, the decision node is then re-inserted into the tree. This process is repeated until no more decision
 nodes are replaced. The tree is now robust to outliers and noise.
 
+\subsection{Performance Metrics} \label{performance_metric_background}
+
+Performance metrics are essential tools when the effectiveness of classification models are evaluated. Performance metrics
+provide a quantitative measure of how reliable and accurate a prediction model performs classification on a dataset.
+Key metrics include accuracy, precision, recall, and F1-score, each offering unique insights into different aspects
+of model performance \cite{Performance_ref}.
+
+\paragraph{Accuracy}
+Accuracy is a common method used to evaluate the performance of classification models. The accuracy of
+a predictive classification model is determined by the proportion of correctly predicted labels against
+the total number of predictions. The calculation of the accuracy of a predictive model is as follows:
+\begin{equation}
+    \text{Accuracy} = \frac{\text{Number of Correct Predictions}}{\text{Total Number of Predictions}} \label{accuracy}
+\end{equation}
+
+Accuracy is a popular choice of performance measure mainly beacause it is fairly easy to understand and compute.
+Accuracy generally perform well on well balanced datasets. On imbalanced datasets, accuracy can produce
+values that are misleading. If a model predicts 
+
+\paragraph{Precision and Recall}
+Precision is the proportion of \acrfull{tp} predictions against all of the \acrshort{tp} and \acrfull{fp}.
+The equation to calculate the precision of a classification model is as follows:
+\begin{equation}
+    \text{Precision} = \frac{\text{True Positives}}{\text{True Positives} + \text{False Positives}} \label{Precision}
+\end{equation}
+
+Recall is the proportion of \acrshort{tp} predictions against all of the \acrshort{tp} and \acrfull{fn}.
+The equation to calculate the recall of a classification model is as follows:
+\begin{equation}
+    \text{Recall} = \frac{\text{True Positives}}{\text{True Positives} + \text{False Negatives}} \label{Recall}
+\end{equation}
+
+\paragraph{F1-score}
+
+The F1-score, also known as the Dice similarity coefficient, is the harmonic mean of precision and recall,
+that provides a balance between the precision and recall \cite{F1-score_ref}.
+In multiclass classificationprecision and recall are adapted from binary classification to handle multiple classes.
+Instead of focusing on a single positive and negative class, these metrics are calculated for each class,
+where each class is treated as the positive class while considering all others as negative. The F1-score
+is calculated for each clas and then averaged. There are three types of averaging F1-score metrics.
+
+The first F1-score metric is the macro averaging F1-score, where the F1-score is calculated  independently for each label
+and then these scores are averaged, giving each class the same weight. The equation used to calculate the macro F1-score is
+as follow:
+\begin{equation}
+    F1_{macro} = \frac{1}{C} \sum_{i=1}^{C} \frac{2 \times Precision_i \times Recall_i}{Precision_i + Recall_i} \label{macro_F1}
+\end{equation}
+where $C$ is the number of classes.
+
+The second F1-score metric used is the micro averaging F1-score, where the contributions of all of the classes
+are aggregated inore to compute the total true positives, false positives and false negatives. The equation used
+to calculate the micro F1-score is as follow:
+\begin{equation}
+    F1_{micro} = \frac{2 \times Precision_{micro} \times Recall_{micro}}{Precision_{micro} + Recall_{micro}} \label{micro_F1}
+\end{equation}
+Micro averaging treats each instance equally and is therefore useful when a dataset contains imbalanced classes. 
+
+The last F1-score metric is known as the weighted averaging F1-score. The weighted F1-score computes the F1-score
+for each class, just like in the macro F1-score. Each score is then weigh by the number of true instances in each class.
+The equation used to calculate the weighted F1-score is as follow:
+\begin{equation}
+    F1_{weighted} = \sum_{i=1}^{C} w_i \frac{2 \times Precision_i \times Recall_i}{Precision_i + Recall_i} \label{weight_F1}
+\end{equation}
+where $w_i$ is the proportion of true instances for label $i$. The equation to calculate $w_i$ is as follows:
+\begin{equation}
+    w_i = \frac{TP_i + FN_i}{\sum_{j=1}^{C}(TP_j + FN_j)}    
+\end{equation}
+where the denominator is the sum of all the true positives and false negatives of all classes, $TP_i$ is the \acrshort{tp}
+for class $i$ and $FN_i$ is the \acrshort{fn} for class $i$.
+
+When the distribution of the classes in a dataset is imbalanced, the F1-score is considerd a more optimal performance metric
+than the accuracy of a model given that the weighted F1-score, macro F1-score and micro F1-score considers both false positives
+and false negatives.
+
 \section{Methodology}
 
 This section provides the approach taken to explore and analyse the dry beans dataset to identify and address data quality
@@ -575,9 +652,59 @@ Additionally, standardisation is applied to scale the feature values, to ensure 
 equally to the distance calculations and to enhance the accuracy of the model. Standardisation is applied
 by the use of Equation \eqref{standardisation}.
 
+Subset feature selection has to be applied to the newly resampled and standardised dataset. If a \acrshort{knn} algorithm
+is fitted with all of the input features, it becomes very likely that the algorithm overfits, thus having a poor
+generalisation on unseen data. In Section \ref{feature_selection background}, feature selection is discussed in detail.
+By the use of a wrapper feature selection technique, the dimension of the Dry Bean dataset can be reduced to the
+construction of a \acrshort{knn} algorithm that overfits the dataset. In Algorithm \ref{alg:Backwards_feature_selection},
+the bacwards feature selection approach is discussed.
+\begin{algorithm}
+    \caption{Backwards feature selection}
+    \label{alg:Backwards_feature_selection}
+    \begin{algorithmic}[1]
+        \Function{kNN}{$D$, $\boldsymbol{\textbf{x}}$, $k$, $p$}
+            \ForAll{$\boldsymbol{\textbf{x}}_i \in D$}
+                \State $\boldsymbol{\textbf{d}}$ = \Call{distance}{$\boldsymbol{\textbf{x}}_i, \boldsymbol{\textbf{x}}$, $p$}
+            \EndFor
+            \State \Call{sort}{$\boldsymbol{\textbf{d}}$}
+            \State $S$ = set of $k$ patterns in $D$ closest to $\boldsymbol{\textbf{x}}$
+            \State Return class as majority class in $S$
+        \EndFunction
+    \end{algorithmic}
+\end{algorithm}
+
 \paragraph{\acrshort{knn} model implementation}
 
+The \acrshort{knn} model for predictive analysis on the Dry Bean dataset is implimented as described
+in Section \ref{KNN_background}. An additional integer control parameter has been introduced to
+Algorithm \ref{alg:KNN_algorithm} that allows for the selection of the appropriate distance metric
+to be applied in the process of model execution. The implementation of the \acrshort{knn} model is represent
+by Algorithm \ref{alg:KNN_improved_algorithm}
+\begin{algorithm}
+    \caption{Improved k-Nearest Neighbours (kNN)}
+    \label{alg:KNN_improved_algorithm}
+    \begin{algorithmic}[1]
+        \Function{kNN}{$D$, $\boldsymbol{\textbf{x}}$, $k$, $p$}
+            \ForAll{$\boldsymbol{\textbf{x}}_i \in D$}
+                \State $\boldsymbol{\textbf{d}}$ = \Call{distance}{$\boldsymbol{\textbf{x}}_i, \boldsymbol{\textbf{x}}$, $p$}
+            \EndFor
+            \State \Call{sort}{$\boldsymbol{\textbf{d}}$}
+            \State $S$ = set of $k$ patterns in $D$ closest to $\boldsymbol{\textbf{x}}$
+            \State Return class as majority class in $S$
+        \EndFunction
+    \end{algorithmic}
+\end{algorithm}
 
+where the equation to calculate the distance between two input features of instances
+$\boldsymbol{\textbf{x}}_1$ and $\boldsymbol{\textbf{x}}_2$ is as follows:
+\begin{equation}
+    d(\boldsymbol{\textbf{x}}_1, \boldsymbol{\textbf{x}}_2) = \left(\sum_{n=1}^{N} \left| x_{1n} - x_{2n} \right|^p\right)^\frac{1}{p} \label{p_distance}
+\end{equation}
+
+The Equation \eqref{p_distance} is observed to be the Minkowski distance metric. If $p$ is equal to one, the Manhattan
+distance is calculated between $\boldsymbol{\textbf{x}}_1$ and $\boldsymbol{\textbf{x}}_2$. If $p$ is equal to two,
+the Euclidean distance is calculated between $\boldsymbol{\textbf{x}}_1$ and $\boldsymbol{\textbf{x}}_2$ and if
+p is larger than 2, the Minkowski distance is calculated between $\boldsymbol{\textbf{x}}_1$ and $\boldsymbol{\textbf{x}}_2$.
 
 \subsection{Classification Tree}
 
@@ -593,6 +720,10 @@ within the classification tree algorithm to enhance the algorithms robustness to
 
 \paragraph{Classification Tree model implementation}
 
+The classification tree model for predictive analysis on the Dry Bean dataset is implimented as described
+in Section \ref{CT_background}. The inclusion of these two additional control parameters, being the maximum depth of the tree
+and the minimum number of samples needed to create a split in the tree, creates a tree that is less prone to
+overfitting. In Algorithm \ref{alg:CTI_imporved_algorithm} the two additional control parameters are added.
 \begin{algorithm}[H]
     \caption{Improved Classification Tree Induction}
     \label{alg:CTI_imporved_algorithm}
@@ -619,9 +750,18 @@ within the classification tree algorithm to enhance the algorithms robustness to
     \end{algorithmic}
 \end{algorithm}
 
+An additional return condition was added to reduce the complexity of the model and to create a
+classification tree that is less prone to overfit. If the current depth $depth$
+is greater than or equal to the maximum depth control parameter, or if the sample size is smaller
+than the minimum sample split, the tree returns the majority class in the data.
+
+The classification tree makes use of pruning by seperating the training set into a training
+and validation set. The tree is induced by the use of training set and then pruned by use of the
+validation set. Algorithm \ref{alg:prune_tree_simplified} explains the algorithm used to 
+prune the tree. 
 \begin{algorithm}[H]
-    \caption{Post-Pruning a Decision Tree}
-    \label{alg:prune_tree}
+    \caption{Simplified Post-Pruning of a Decision Tree}
+    \label{alg:prune_tree_simplified}
     \begin{algorithmic}[1]
         \Function{PruneTree}{$X_{\text{val}}$, $y_{\text{val}}$}
             \If{Tree is not trained}
@@ -631,58 +771,59 @@ within the classification tree algorithm to enhance the algorithms robustness to
         \EndFunction
 
         \Function{PruneNode}{node, $X_{\text{val}}$, $y_{\text{val}}$}
-            \If{node is a leaf node}
+            \If{node is a leaf}
                 \Return
             \EndIf
             
             \For{each branch in node.branches}
-                \If{branch value is numerical}
-                    \If{value contains `$>=$'}
-                        \State threshold = float(value.replace(`$>= $', `'))
-                        \State mask = $X_{\text{val}}[\text{node.test}] \geq \text{threshold}$
-                    \Else
-                        \State threshold = float(value.replace(`$<$ ', `'))
-                        \State mask = $X_{\text{val}}[\text{node.test}] < \text{threshold}$
-                    \EndIf
-                \Else
-                    \State mask = $X_{\text{val}}[\text{node.test}] == \text{value}$
-                \EndIf
-                
-                \State $X_{\text{val\_subset}} = X_{\text{val}}[\text{mask}]$
-                \State $y_{\text{val\_subset}} = y_{\text{val}}[\text{mask}]$
-                
-                \If{$X_{\text{val\_subset}}$ is not empty}
+                \State Determine threshold and mask for $X_{\text{val}}$ based on the branch value.
+                \State Subset $X_{\text{val}}$ and $y_{\text{val}}$ using the mask.
+                \If{the subset is not empty}
                     \State \Call{PruneNode}{branch, $X_{\text{val\_subset}}$, $y_{\text{val\_subset}}$}
                 \EndIf
             \EndFor
+            
             \If{$X_{\text{val}}$ is not empty}
-                \State \text{original\_predictions} = \Call{predict}{$X_{\text{val}}$}
-                \State \text{original\_f1\_score} = \hfill \Call{f1\_score}{$y_{\text{val}}$, \text{original\_predictions}, \text{average='weighted'}}
-
-                \State \text{prev\_prediction} = node.prediction
-                \State \text{original\_branches} = node.branches
-                \State node.is\_leaf = \text{True}
-                \State node.branches = \{\}
-                \State node.prediction = \Call{majority\_class}{$y_{\text{val}}$}
-                
-                \State \text{pruned\_predictions} = \Call{predict}{$X_{\text{val}}$}
-                \State \text{pruned\_f1\_score} = \hfill \Call{f1\_score}{$y_{\text{val}}$, \text{pruned\_predictions}, \text{average='weighted'}}
-                \If{\text{pruned\_f1\_score} $<$ \text{original\_f1\_score}}
-                    \State node.is\_leaf = \text{False}
-                    \State node.branches = \text{original\_branches}
-                    \State node.prediction = \text{prev\_prediction}
+                \State Compute original predictions and original F1-score.
+                \State Temporarily make the node a leaf and set the prediction to the majority class.
+                \State Compute pruned predictions and pruned F1-score.
+                \If{pruned F1-score $<$ original F1-score}
+                    \State Revert node to its original state.
                 \EndIf
             \EndIf
         \EndFunction
     \end{algorithmic}
 \end{algorithm}
 
+F1-score is used as the performance metric to compare the predictions of the original tree to the
+predictions of the pruned tree. If the F1-score of the pruned tree is lower than the F1-score
+of the original tree, the changes are reverted to ensure that pruning does not degrade the performance
+of the model.
+
 \section{Empirical Procedure}
+
+\subsection{Performance Metrics}
+
+
+
+\subsection{Control Parameters}
+
+\paragraph{\acrshort{knn} control parameter}
+The
+
+\paragraph{Classification tree control parameter}
+
+\subsection{Experimental Setup}
+
+\subsection{Statistical Significance and Analysis}
+
 \section{Research Results}
 \section{Conclusion}
 \begin{thebibliography}{00}
     \bibitem{Missing_ref} A. C. Acock "Working with missing values." In: Journal of Marriage and family (2005).
+    \bibitem{Performance_ref} J. Braet, M. Cristina, Hinojosa-Lee, and J. Springael. "Evaluating performance metrics in emotion lexicon distillation: a focus on F1 scores." (2024).
     \bibitem{CART_ref} L. Breiman, J. Friedman, R. A. Olshen and C. J. Stone "Classification and Regression Trees." In: Routledge.  (1984).
+    \bibitem{F1-score_ref} B. J. Erickson, and K. Felipe "Magician’s corner: 9. Performance metrics for machine learning models." In: Radiology: Artificial Intelligence 3, no. 3 (2021): e200126.
     \bibitem{KNN_ref} M. C. Jones, B. W. Silverman “E. Fix and J.L. Hodges (1951): An Important Contribution to Nonparametric Discriminant Analysis and Density Estimation: Commentary on Fix and Hodges (1951).” In: International Statistical Review / Revue Internationale de Statistique, vol. 57, no. 3, (1989).
     \bibitem{ID3_ref} J. R. Quinlan "Induction of decision trees" In: Mach Learn 1 (1986).
     \bibitem{C4.5_ref} J. R. Quinlan "C4. 5: programs for machine learning." In: Elsevier, (1993).
