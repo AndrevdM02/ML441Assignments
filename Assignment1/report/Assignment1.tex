@@ -10,6 +10,8 @@
 \usepackage{textcomp}
 \usepackage{xcolor}
 \usepackage{bm}
+\usepackage{subcaption}
+\usepackage{float}
 \usepackage[acronym]{glossaries}
 \def\BibTeX{{\rm B\kern-.05em{\sc i\kern-.025em b}\kern-.08em
     T\kern-.1667em\lower.7ex\hbox{E}\kern-.125emX}}
@@ -481,7 +483,7 @@ This section provides the approach taken to explore and analyse the dry beans da
 issues. Additionally, it details the methodology used to classify dry bean types through the use of a \acrshort{knn}
 and classification tree model.
 
-\subsection{Data Overview}
+\subsection{Data Overview} \label{Data_Overview}
 
 The structure and characteristics of the Dry Beans dataset are thoroughly investigated. The details on the number of instances
 and types of features are investigated to provide a foundational understanding for the subsequent data analysis.
@@ -500,25 +502,180 @@ a first quartile value of approximately 0.25, a mean of approximately 0.5, a thi
 a maximum value of approximately 1. These statistics all indicate that `Sort Order' is a unique identifier or index.
 As a result, `Sort Order' may be considered as an irrelevant feature for predictive modeling purpose.
 
+The second observation made is that feature `ConvexArea' contains a negative number as the minimum value. This is
+impossible as area can not be negative. The boxplot of feature `ConvexArea' is given by Figure
+\ref{ConvexArea_boxplot_negative} to further investigate the properties of the feature `ConvexArea'.
+\begin{figure}[h!]
+    \centerline{\includegraphics[scale=0.35]{../Plots/Negative ConvexArea boxplot.png}}
+    \caption{Boxplot of feature ConvexArea vs feature Class}
+    \label{ConvexArea_boxplot_negative}
+\end{figure}
 
+Figure \ref{ConvexArea_boxplot_negative} clearly shows that the negative value is an obscure outlier, thus can this
+instance of the dataset be classified as an invalid outlier and should either be imputed or dropped from the dataset.
+
+The third observation made is that both the minimum and the maximum values of feature `EquivDiameter' deviates
+largely from the rest of the statistics. This large deviation may indicate that these instances of the dataset
+are also invalid outliers. Figure \ref{EquivDiameter boxplot before} is the boxplot of feature `EquivDiameter'
+that helps to investigate the obscure values of the instances in the dataset.
+\begin{figure}[H]
+    \centerline{\includegraphics[scale=0.35]{../Plots/EquivDiameter outlier boxplot.png}}
+    \caption{Boxplot of feature EquivDiameter vs feature Class}
+    \label{EquivDiameter boxplot before}
+\end{figure}
+
+From Figure \ref{EquivDiameter boxplot before} it is quite clear that the maximum value of feature `EquivDiameter'
+is an invalid outlier. This instance is dropped from the dataset and the boxplot is generated again, as shown
+in Figure \ref{EquivDiameter boxplot before 2}, to investigate the minimum value of the feature `EquivDiameter'.
+\begin{figure}[h!]
+    \centerline{\includegraphics[scale=0.35]{../Plots/EquivDiameter outlier boxplot 2.png}}
+    \caption{Boxplot of feature EquivDiameter vs feature Class after the maximum value was dropped}
+    \label{EquivDiameter boxplot before 2}
+\end{figure}
+
+As seen in Figure \ref{EquivDiameter boxplot before 2} there is another instance in the dataset that deviates
+significantly from the rest of the observations and can also be classified as an invalid outlier. This outlier
+is also removed from the dataset and the boxplot is again generated, as shown in Figure
+\ref{EquivDiameter boxplot before 3}, to investigate the minimum value of the feature `EquivDiameter'.
+\begin{figure}[H]
+    \centerline{\includegraphics[scale=0.35]{../Plots/EquivDiameter outlier boxplot 3.png}}
+    \caption{Boxplot of feature EquivDiameter vs feature Class after the invalid outliers were dropped}
+    \label{EquivDiameter boxplot before 3}
+\end{figure}
+
+From Figure \ref{EquivDiameter boxplot before 3} it is clear that the minimum value is also an invalid outlier
+that should either be imputed or removed from the dataset.
+
+The important characteristics of each discrete feature in the Dry Bean dataset is summarised in Table
+\ref{tab:categorical features}.
+
+The most important observation made from Table \ref{tab:categorical features} is that the `Class' feature
+is imbalanced, as the first and second modes together form 45\% of the data. The five other classes
+makes up the remaining 55\%, and thus the `Class' feature is imbalanced.
 
 \subsection{K-Nearest Neighbours}
 
 \paragraph{Data preparation}
 
 Data preparation is a very crucial step that must be completed before the \acrshort{knn} algorithm can be applied to the Dry
-Bean dataset.
+Bean dataset. If a \acrshort{knn} model is implemented as described in Section \ref{KNN_background}, then
+will the \acrshort{knn} model be robust to missing values, noise and outliers in the dataset. To prepare
+the Dry Bean dataset for a \acrshort{knn} model, the missing values have to be replaced with \acrshort{nan}
+and the insatnces that contains missing values in the `Class' feature is dropped.
+
+\acrshort{knn} is an instance-based learning algorithm that calculates the distance between feature
+instances to classify new data points based on the majority class of their nearest neighbours. Therefore, all features need
+to be numeric for the distance calculations to be valid. The `Colour' feature is a categorical feature with no
+natural ordering and will therefore be one hot encoded.
+
+This implementation of \acrshort{knn} is sensitive to imbalanced classes. The `Class' feature is imbalanced, as
+discussed in Section \ref{Data_Overview}. Tomek links and \acrshort{smote} resampling techniques are applied to the
+dataset in order to address this imbalance and improve the performance of the \acrshort{knn} classification model.
+Additionally, standardisation is applied to scale the feature values, to ensure that all features contribute
+equally to the distance calculations and to enhance the accuracy of the model. Standardisation is applied
+by the use of Equation \eqref{standardisation}.
 
 \paragraph{\acrshort{knn} model implementation}
+
+
 
 \subsection{Classification Tree}
 
 \paragraph{Data preparation}
 
-Data preparation is a very crucial step that must be completed before the classification tree algorithm can be applied to the
-Dry Bean dataset.
+Data preparation is a crucial step that must be completed before the classification tree algorithm can be applied to the
+Dry Bean dataset. If a classification tree algorithm is implemented as described in \ref{CT_background}, then will
+the classification tree be robust to outliers, missing values and noise in the dataset.
+To prepare the Dry Bean dataset for a classification tree model, the missing values have to be replaced
+with \acrshort{nan} and the insatnces that contains missing values in the `Class' feature is dropped. The
+classification tree is sensitive to class imbalances. Instead of resampling the data, another technique is implemented
+within the classification tree algorithm to enhance the algorithms robustness to class imbalances.
 
 \paragraph{Classification Tree model implementation}
+
+\begin{algorithm}[H]
+    \caption{Improved Classification Tree Induction}
+    \label{alg:CTI_imporved_algorithm}
+    \begin{algorithmic}[1]
+        \Function{InduceTree}{$D$, $depth$}
+            \If{$\left\lvert D \right\rvert$ = 0}
+                \State Return leaf with default class
+            \EndIf
+            
+            \If{$\left\lvert D \right\rvert$ $<$ \text{min\_sample\_split} or $depth$ $>=$ $max depth$}
+                \State Return leaf with class label $y_m$, containing $D$
+            \EndIf
+
+            \If{$\left\lvert D \right\rvert$ $>$ 0 and $\forall \boldsymbol{\textbf{x}} \in D$ the class is the same, i.e. $y_m$}
+                \State Return leaf with class label $y_m$, containing $D$
+            \EndIf
+
+            \State Select a test based on a single input variable
+            \State Split $D$ into $D_1$,$D_2$,...,$D_o$, where $O$ is the number of outcomes
+            \For{$o$ = 1 to $O$}
+                \State \Call{InduceTree}{$D_o$, $depth+1$}
+            \EndFor
+        \EndFunction
+    \end{algorithmic}
+\end{algorithm}
+
+\begin{algorithm}[H]
+    \caption{Post-Pruning a Decision Tree}
+    \label{alg:prune_tree}
+    \begin{algorithmic}[1]
+        \Function{PruneTree}{$X_{\text{val}}$, $y_{\text{val}}$}
+            \If{Tree is not trained}
+                \State \textbf{raise} ValueError("The tree has not been trained yet.")
+            \EndIf
+            \State \Call{PruneNode}{root, $X_{\text{val}}$, $y_{\text{val}}$}
+        \EndFunction
+
+        \Function{PruneNode}{node, $X_{\text{val}}$, $y_{\text{val}}$}
+            \If{node is a leaf node}
+                \Return
+            \EndIf
+            
+            \For{each branch in node.branches}
+                \If{branch value is numerical}
+                    \If{value contains `$>=$'}
+                        \State threshold = float(value.replace(`$>= $', `'))
+                        \State mask = $X_{\text{val}}[\text{node.test}] \geq \text{threshold}$
+                    \Else
+                        \State threshold = float(value.replace(`$<$ ', `'))
+                        \State mask = $X_{\text{val}}[\text{node.test}] < \text{threshold}$
+                    \EndIf
+                \Else
+                    \State mask = $X_{\text{val}}[\text{node.test}] == \text{value}$
+                \EndIf
+                
+                \State $X_{\text{val\_subset}} = X_{\text{val}}[\text{mask}]$
+                \State $y_{\text{val\_subset}} = y_{\text{val}}[\text{mask}]$
+                
+                \If{$X_{\text{val\_subset}}$ is not empty}
+                    \State \Call{PruneNode}{branch, $X_{\text{val\_subset}}$, $y_{\text{val\_subset}}$}
+                \EndIf
+            \EndFor
+            \If{$X_{\text{val}}$ is not empty}
+                \State \text{original\_predictions} = \Call{predict}{$X_{\text{val}}$}
+                \State \text{original\_f1\_score} = \hfill \Call{f1\_score}{$y_{\text{val}}$, \text{original\_predictions}, \text{average='weighted'}}
+
+                \State \text{prev\_prediction} = node.prediction
+                \State \text{original\_branches} = node.branches
+                \State node.is\_leaf = \text{True}
+                \State node.branches = \{\}
+                \State node.prediction = \Call{majority\_class}{$y_{\text{val}}$}
+                
+                \State \text{pruned\_predictions} = \Call{predict}{$X_{\text{val}}$}
+                \State \text{pruned\_f1\_score} = \hfill \Call{f1\_score}{$y_{\text{val}}$, \text{pruned\_predictions}, \text{average='weighted'}}
+                \If{\text{pruned\_f1\_score} $<$ \text{original\_f1\_score}}
+                    \State node.is\_leaf = \text{False}
+                    \State node.branches = \text{original\_branches}
+                    \State node.prediction = \text{prev\_prediction}
+                \EndIf
+            \EndIf
+        \EndFunction
+    \end{algorithmic}
+\end{algorithm}
 
 \section{Empirical Procedure}
 \section{Research Results}
@@ -582,8 +739,8 @@ Dry Bean dataset.
         \hline
         %   	                    Count   % Miss     Card.    Mode      Mode Freq   Mode %        2nd Mode    2nd Mode Freq  2nd Mode %
         \textbf{Constantness}       &13611  &0.0       &2       &1        &12289      &90.287268     &0          &1322         &9.712732\\
-        \textbf{Colour}             &13611  &0.044082  &5       &brown    &6115       &44.926897    &black      &3541          &26.015723\\
-        \textbf{Class}              &13611  &0.124899  &8       &DERMASON &3542       &26.02307     &SIRA       &2634          &19.351995\\
+        \textbf{Colour}             &13611  &0.044082  &4       &brown    &6115       &44.926897    &black      &3541          &26.015723\\
+        \textbf{Class}              &13611  &0.124899  &7       &DERMASON &3542       &26.02307     &SIRA       &2634          &19.351995\\
 
         \hline
     \end{tabular}
@@ -614,5 +771,19 @@ Dry Bean dataset.
 %     \caption{Classification tree confusion matrix}
 %     \label{clf confusion matrix}
 % \end{figure}
+Classification Report:
+              precision    recall  f1-score   support
+
+    BARBUNYA       0.86      0.91      0.88       289
+      BOMBAY       1.00      1.00      1.00        98
+        CALI       0.93      0.89      0.91       323
+    DERMASON       0.95      0.98      0.97       698
+       HOROZ       0.99      0.99      0.99       383
+       SEKER       0.99      0.99      0.99       391
+        SIRA       0.97      0.92      0.95       536
+
+    accuracy                           0.96      2718
+   macro avg       0.96      0.96      0.96      2718
+weighted avg       0.96      0.96      0.96      2718
 
 \end{document}
