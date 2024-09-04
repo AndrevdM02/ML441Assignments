@@ -40,39 +40,60 @@
 
 \begin{document}
 
-\title{Assignment 1\\
+\title{Assignment 1 \\
+Exploratory Data Analysis and the Implementation of K-Nearest Neighbor and Classification Tree Models
+on Dry Bean Data
 % {\footnotesize \textsuperscript{*}Note: Sub-titles are not captured in Xplore and
 % should not be used}
 % \thanks{Identify applicable funding agency here. If none, delete this.}
 }
 
-\author{\IEEEauthorblockN{Andre van der Merwe}
-% \IEEEauthorblockA{\textit{dept. name of organization (of Aff.)} \\
-% \textit{name of organization (of Aff.)}\\
-% City, Country \\
-% email address or ORCID}
+\author{\IEEEauthorblockN{A.D. van der Merwe}
+\IEEEauthorblockA{Department of Computer Science \\
+University of Stellenbosch\\
+24923273 \\
+24923273@sun.ac.za}
 }
 
 \maketitle
 
 \begin{abstract}
-    
+    In this report, the application of classification algorithms is explored on the Dry Bean dataset, with a focus on
+    data analysis and data preparation. The primary goal is to prepare the data and then construct two classification models,
+    \acrfull{knn} and decision trees on the Dry Bean dataset and evaluate their performance on predictions of bean types.
+    The characteristics of each feature and visualisation is explored to determine if there are any data quality issues.
+    The data is prepared for use in the classification algorithms, which includes standardisation for \acrshort{knn} and
+    post-pruning for the decision tree. K-fold cross-validation assesses the effectiveness of the model and if the
+    model is deterministic, with performance measured by accuracy and F1-score. The report shows that both models can be
+    tailored  to handle data quality issues and highlights the strength of each approach when beans are classified.
 \end{abstract}
 
 \section{Introduction}
 
-\begin{itemize}
-    \item Context: Begin by explaining the importance of data quality in machine learning and the relevance of classification algorithms like KNN and classification trees in the context of the DryBeanDataSet.
-    \item Goals: State that the main goal is to identify and address data quality issues and develop two predictive models to classify dry beans.
-    \item Approach: Briefly outline the steps taken: characterizing the dataset, identifying and addressing data quality issues, applying the KNN and classification tree algorithms, and evaluating their performance.
-    \item Motivation: Explain why this study is important, such as improving the accuracy of classification models in agricultural datasets.
-    \item Main Observations: Summarize the key findings, such as which model performed better and how data quality issues impacted the results.
-    \item Outline: Provide a brief overview of the structure of the report, mentioning the sections that follow.
-\end{itemize}
+Exploratory data analysis \acrshort{eda} is crucial for machine learning as it provides knowledge about the dataset and how to
+approach the task at hand. More knowledge of a dataset can help make a decision on which modeling techniques to apply to the
+dataset.
 
-\section{Background}
+The approach began with a thorough characterisation of the Dry Bean dataset, to better understand the nature and distributions
+of the features by the calculation of descriptive statistics. Data quality issues are identified such as missing values,
+class imbalances and outliers. Data preparation techniques are applied to the data data quality issues to ensure optimal
+performance of the classification algorithms that are implemented. The classification algorithms implemented are a
+\acrfull{knn} and decision tree classification algorithm. For \acrshort{knn}, feature standardisation and parameter
+tuning is conducted to enhance the performance of the classification model, while, for the decision tree classification model,
+tree induction and post-pruning techniques are applied to prevent overfitting. To evaluate these models k-fold cross-validation
+is applied and different performance features like accuracy and F1-score is used. This comprehensive approach aims to ensure
+a good understanding of the dataset, analyse the data, adress any data quality issues, and determine the most effective
+classification model for the Dry Bean dataset.
 
-This section presents background information on \\ \acrlong{eda} and techniques used to clean and transform data
+The rest of this paper is structured as follows: Section \ref{section:Background} provides background information on
+data quality issues, data preparation techniques, \acrshort{knn} classification algorithms and decision tree classification algorithms.
+Section \ref{section: Methodology} provides the methodology used to analyse and prepare the Dry Bean dataset and to build a
+\acrshort{knn} and decision tree classification algorithm on the data. The empirical procedure is given in Section
+\ref{section:Empirical Procedure} and the research results is given in Section \ref{section:Research Results}
+
+\section{Background} \label{section:Background}
+
+This section presents background information on \acrshort{eda} and techniques used to clean and transform data
 for analysis or to construct models. Additionally, information on the C4.5 decision tree and k-nearest neighbours
 classification models.
 
@@ -298,7 +319,7 @@ Standardisation transform all of the values of each feature to have a zero-mean 
 
 \subsection{K-Nearest Neighbours}\label{KNN_background}
 
-The \acrfull{knn} algorithm was first propsed by Evelyn Fix and Joseph Hodges in 1951 \cite{KNN_ref}
+The \acrshort{knn} algorithm was first propsed by Evelyn Fix and Joseph Hodges in 1951 \cite{KNN_ref}
 in a technical report that was never published. The report contained pioneering work on nonparametric
 discriminant analysis and probability density estimation and laid the foundational principles for
 the \acrshort{knn} algorithm.
@@ -554,7 +575,7 @@ When the distribution of the classes in a dataset is imbalanced, the F1-score is
 than the accuracy of a model given that the weighted F1-score, macro F1-score and micro F1-score considers both false positives
 and false negatives.
 
-\section{Methodology}
+\section{Methodology} \label{section: Methodology}
 
 This section provides the approach taken to explore and analyse the dry beans dataset to identify and address data quality
 issues. Additionally, it details the methodology used to classify dry bean types through the use of a \acrshort{knn}
@@ -656,22 +677,7 @@ Subset feature selection has to be applied to the newly resampled and standardis
 is fitted with all of the input features, it becomes very likely that the algorithm overfits, thus having a poor
 generalisation on unseen data. In Section \ref{feature_selection background}, feature selection is discussed in detail.
 By the use of a wrapper feature selection technique, the dimension of the Dry Bean dataset can be reduced to the
-construction of a \acrshort{knn} algorithm that overfits the dataset. In Algorithm \ref{alg:Backwards_feature_selection},
-the bacwards feature selection approach is discussed.
-\begin{algorithm}
-    \caption{Backwards feature selection}
-    \label{alg:Backwards_feature_selection}
-    \begin{algorithmic}[1]
-        \Function{kNN}{$D$, $\boldsymbol{\textbf{x}}$, $k$, $p$}
-            \ForAll{$\boldsymbol{\textbf{x}}_i \in D$}
-                \State $\boldsymbol{\textbf{d}}$ = \Call{distance}{$\boldsymbol{\textbf{x}}_i, \boldsymbol{\textbf{x}}$, $p$}
-            \EndFor
-            \State \Call{sort}{$\boldsymbol{\textbf{d}}$}
-            \State $S$ = set of $k$ patterns in $D$ closest to $\boldsymbol{\textbf{x}}$
-            \State Return class as majority class in $S$
-        \EndFunction
-    \end{algorithmic}
-\end{algorithm}
+construction of a \acrshort{knn} algorithm that overfits the dataset.
 
 \paragraph{\acrshort{knn} model implementation}
 
@@ -800,25 +806,40 @@ predictions of the pruned tree. If the F1-score of the pruned tree is lower than
 of the original tree, the changes are reverted to ensure that pruning does not degrade the performance
 of the model.
 
-\section{Empirical Procedure}
+\section{Empirical Procedure} \label{section:Empirical Procedure}
 
 \subsection{Performance Metrics}
 
-
+Accuracy is used to evaluate the performance of the \acrshort{knn} model, as the dataset has been
+resampled to have balanced class distributions. As for the Classification tree, the performance
+measures used to evaluate the model will be the weighted F1-score, since the dataset has an
+imbalanced class distribution.
 
 \subsection{Control Parameters}
 
-\paragraph{\acrshort{knn} control parameter}
-The
-
-\paragraph{Classification tree control parameter}
+The \acrshort{knn} experiments are performed by the use of the euclidian distance metric and a value of
+147 for k. The experiments of the classification tree are performed by the use of a max depth of 9 and
+a minimum sample split of 2.
 
 \subsection{Experimental Setup}
 
+To evaluate the performance of both the \acrshort{knn} and classification tree algorithms, a 5-fold cross
+validation technique was applied, that splitted the Dry Bean dataset into five equally distributed datasets.
+Four of these datasets were used to train each model and the remaining dataset was used to test the
+classification algorithm. This ensured that the evaluation was fair and consistent across the entire dataset and
+the bias that might arise from relying on a single training-test split was reduced. The rotation of the test set,
+allowed for a more comprehensive understanding of the performance of the model on unseen data.
+
 \subsection{Statistical Significance and Analysis}
 
-\section{Research Results}
-\section{Conclusion}
+The statistical significance of the results from the \acrshort{knn} and classification tree models is determined
+by the evaluation of the accuracy and weighted F1-score respectively of each of the models implemented by the use
+of a 5-fold cross-validation over a grid of different possible values that the control parameters could be. By use of the Kruskal-Wallis
+test to check for stochastic dominance amongst the samples. The paired t-test was then performed to obtain this optimal value of the
+control parameters for both the \acrshort{knn} and classification tree models.
+
+\section{Research Results} \label{section:Research Results}
+\section{Conclusion} \label{section:Conclusion}
 \begin{thebibliography}{00}
     \bibitem{Missing_ref} A. C. Acock "Working with missing values." In: Journal of Marriage and family (2005).
     \bibitem{Performance_ref} J. Braet, M. Cristina, Hinojosa-Lee, and J. Springael. "Evaluating performance metrics in emotion lexicon distillation: a focus on F1 scores." (2024).
@@ -835,7 +856,7 @@ The
 
 \clearpage
 
-\begin{table}[h!]
+\begin{table*}[h!]
     % \caption{\textbf{Continuous Features}}
     \caption{Continuous Features}
     \begin{center}
@@ -868,9 +889,9 @@ The
     \end{tabular}
     \label{tab:continuous features}
     \end{center}
-\end{table}
+\end{table*}
 
-\begin{table}[h!]
+\begin{table*}[h!]
     % \caption{\textbf{Continuous Features}}
     \caption{Categorical Features}
     \begin{center}
@@ -887,7 +908,7 @@ The
     \end{tabular}
     \label{tab:categorical features}
     \end{center}
-\end{table}
+\end{table*}
 
 \begin{table}[h!]
     \caption{Hyperparameter tuning for Classification tree}
