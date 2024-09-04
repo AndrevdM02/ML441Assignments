@@ -12,6 +12,7 @@
 \usepackage{bm}
 \usepackage{subcaption}
 \usepackage{float}
+\usepackage{afterpage}
 \usepackage[acronym]{glossaries}
 \def\BibTeX{{\rm B\kern-.05em{\sc i\kern-.025em b}\kern-.08em
     T\kern-.1667em\lower.7ex\hbox{E}\kern-.125emX}}
@@ -594,6 +595,88 @@ of a missing value is changed from `?' to a value of \acrfull{nan}. The next ste
 characteristics of each feature and investigate these characteristics. The important characteristics of each
 continuous feature are summarised in Table \ref{tab:continuous features}.
 
+% \clearpage
+\begin{table*}[h!]
+    % \caption{\textbf{Continuous Features}}
+    \caption{Continuous Features}
+    \begin{center}
+    \begin{tabular}{|c||c|c|c|c|c|c|c|c|c|c|}
+        \hline
+        \textbf{Features}&\textbf{Count}&\textbf{\% Miss.}&\textbf{Card.}&\textbf{Min.}&\textbf{$1^{st}$ Qrt.}&\textbf{Mean}&\textbf{Median}&\textbf{$3^{rd}$ Qrt.}&\textbf{Max}.&\textbf{Std Dev.}\\
+        \hline
+        %   	                    Count   % Miss     Card.    Min         1st Q       Mean          Median      3rd Q       Max         Std Dev
+        \textbf{Area}               &13611  &0.0       &12011   &20420      &36328      &53048.2845 &44652      &61332      &254616     &29324.0958\\
+        \textbf{Perimeter}          &13611  &0.0       &13351   &524.736    &703.5235   &855.2835   &794.941    &977.213    &1985.37    &214.2897\\
+        \textbf{MajorAxisLength}    &13611  &0.0       &13543   &183.601165 &253.303633 &320.1419   &296.883367 &376.495012 &738.860153 &85.6942\\
+        \textbf{MinorAxisLength}    &13611  &0.0       &13543   &122.512653 &175.848170	&202.2707   &192.431733 &217.031741 &460.198497 &44.9701\\
+        \textbf{AspectRation}       &13611  &0.0       &13543   &1.024868   &1.432307   &1.5832     &1.551124   &1.707109	  &2.430306   &0.2467\\
+        \textbf{Eccentricity}       &13611  &0.0       &13543   &0.218951   &0.715928   &0.7509     &0.764441	  &0.810466	  &0.911423   &0.0920\\
+        \textbf{ConvexArea}         &13611  &0.0       &12066   &-30        &36714.5    &53765.6926 &45178      &62294      &263261     &29778.0094\\
+        \textbf{EquivDiameter}      &13611  &0.0       &12012   &0.161417   &215.068003 &476.2541   &238.438026 &279.452162 &3014441    &25836.8656\\
+        \textbf{Extent}             &13611  &0.044082  &13529   &0.555315   &0.718641   &0.7497     &0.759874   &0.786852	  &0.866195	  &0.0491\\
+        \textbf{Solidity}           &13611  &0.0       &13526   &0.919246	&0.985670	&0.9871     &0.988283   &0.990013   &0.994677   &0.0047	\\
+        \textbf{Roundness}          &13611  &0.0       &13543   &0.489618   &0.832096   &0.8733     &0.883157   &0.916869   &0.990685   &0.0595\\
+        \textbf{Compactness}        &13611  &0.132246  &13525   &0.640577	&0.762577	&0.7999	    &0.801291	  &0.834270   &0.987303   &0.0617\\
+        \textbf{ShapeFactor1}       &13611  &0.0       &13543   &0.002778   &0.005900   &0.0066 	&0.006645   &0.007271   &0.010451   &0.0011\\
+        \textbf{ShapeFactor2}       &13611  &0.0       &13543   &0.000564	&0.001154	&0.0017	    &0.001694	  &0.002170   &0.003665   &0.0006\\
+        \textbf{ShapeFactor3}       &13611  &0.0       &13543   &0.410339   &0.581359	&0.6436     &0.642044	  &0.696006	  &0.974767   &0.0990\\
+        \textbf{ShapeFactor4}       &13611  &0.0       &13611   &0.695579	&1.614151	&2.3681	  &2.368757   &3.115695	  &3.966119   &0.8716\\
+        \textbf{ShapeFactor5}       &13611  &0.0       &13543   &0.947687   &0.993703   &0.9951	  &0.996386	  &0.997883   &0.999733   &0.0044\\
+        \textbf{ShapeFactor6}       &13611  &0.036735  &13606   &0.000466	&45.258826	&89.3586	  &88.76667   &134.273148 &178.985023 &51.8386\\
+        \textbf{Sort order}         &13611  &0.0       &13611   &0.000089   &0.248187   &0.5003     &0.50381    &0.750096   &0.999985   &0.2879\\
+
+        \hline
+    \end{tabular}
+    \label{tab:continuous features}
+    \end{center}
+\end{table*}
+The important characteristics of each discrete feature in the Dry Bean dataset is summarised in Table
+\ref{tab:categorical features}.
+
+\begin{table*}[h!]
+    % \caption{\textbf{Continuous Features}}
+    \caption{Categorical Features}
+    \begin{center}
+    \begin{tabular}{|c||c|c|c|c|c|c|c|c|c|}
+        \hline
+        \textbf{Features}&\textbf{Count}&\textbf{\% Miss.}&\textbf{Card.}&\textbf{Mode}&\textbf{Mode Freq.}&\textbf{Mode \%}&\textbf{$2^{nd}$ Mode}&\textbf{$2^{nd}$ Mode Freq.}&\textbf{$2^{nd}$ Mode \%}\\
+        \hline
+        %   	                    Count   % Miss     Card.    Mode      Mode Freq   Mode %        2nd Mode    2nd Mode Freq  2nd Mode %
+        \textbf{Constantness}       &13611  &0.0       &2       &1        &12289      &90.287268     &0          &1322         &9.712732\\
+        \textbf{Colour}             &13611  &0.044082  &4       &brown    &6115       &44.926897    &black      &3541          &26.015723\\
+        \textbf{Class}              &13611  &0.124899  &7       &DERMASON &3542       &26.02307     &SIRA       &2634          &19.351995\\
+
+        \hline
+    \end{tabular}
+    \label{tab:categorical features}
+    \end{center}
+\end{table*}
+
+\begin{figure}[H]
+\end{figure}
+\begin{figure}[H]
+\end{figure}
+\begin{figure}[H]
+\end{figure}
+\begin{figure}[H]
+\end{figure}
+\begin{figure}[H]
+\end{figure}
+\begin{figure}[H]
+\end{figure}
+\begin{figure}[H]
+\end{figure}
+\begin{figure}[H]
+\end{figure}
+\begin{figure}[H]
+\end{figure}
+
+\noindent
+
+The most important observation made from Table \ref{tab:categorical features} is that the `Class' feature
+is imbalanced, as the first and second modes together form 45\% of the data. The five other classes
+makes up the remaining 55\%, and thus the `Class' feature is imbalanced.
+
 Several points of interest emerge after a closer examination of Table \ref{tab:continuous features}. The first
 observation made is that the feature `Sort Order' feature has a cardinality of 13611, a minimum of approximately 0,
 a first quartile value of approximately 0.25, a mean of approximately 0.5, a third quartile of approximately 0.75 and
@@ -612,6 +695,7 @@ impossible as area can not be negative. The boxplot of feature `ConvexArea' is g
 Figure \ref{ConvexArea_boxplot_negative} clearly shows that the negative value is an obscure outlier, thus can this
 instance of the dataset be classified as an invalid outlier and should either be imputed or dropped from the dataset.
 
+
 The third observation made is that both the minimum and the maximum values of feature `EquivDiameter' deviates
 largely from the rest of the statistics. This large deviation may indicate that these instances of the dataset
 are also invalid outliers. Figure \ref{EquivDiameter boxplot before} is the boxplot of feature `EquivDiameter'
@@ -625,7 +709,7 @@ that helps to investigate the obscure values of the instances in the dataset.
 From Figure \ref{EquivDiameter boxplot before} it is quite clear that the maximum value of feature `EquivDiameter'
 is an invalid outlier. This instance is dropped from the dataset and the boxplot is generated again, as shown
 in Figure \ref{EquivDiameter boxplot before 2}, to investigate the minimum value of the feature `EquivDiameter'.
-\begin{figure}[h!]
+\begin{figure}[H]
     \centerline{\includegraphics[scale=0.35]{../Plots/EquivDiameter outlier boxplot 2.png}}
     \caption{Boxplot of feature EquivDiameter vs feature Class after the maximum value was dropped}
     \label{EquivDiameter boxplot before 2}
@@ -643,13 +727,6 @@ is also removed from the dataset and the boxplot is again generated, as shown in
 
 From Figure \ref{EquivDiameter boxplot before 3} it is clear that the minimum value is also an invalid outlier
 that should either be imputed or removed from the dataset.
-
-The important characteristics of each discrete feature in the Dry Bean dataset is summarised in Table
-\ref{tab:categorical features}.
-
-The most important observation made from Table \ref{tab:categorical features} is that the `Class' feature
-is imbalanced, as the first and second modes together form 45\% of the data. The five other classes
-makes up the remaining 55\%, and thus the `Class' feature is imbalanced.
 
 \subsection{K-Nearest Neighbours}
 
@@ -839,7 +916,29 @@ test to check for stochastic dominance amongst the samples. The paired t-test wa
 control parameters for both the \acrshort{knn} and classification tree models.
 
 \section{Research Results} \label{section:Research Results}
+
+
 \section{Conclusion} \label{section:Conclusion}
+
+In this report, the Dry Bean dataset was thoroughly analysed and the important characteristics of each feature was investigated
+to better understand the data and to identify any data quality issues. The Dry Bean dataset was used to construct two classification
+models, namely a \acrfull{knn} and a decision tree. Before the \acrshort{knn} model was trained on the dataset, some data
+quality issues had to be addressed such as resampling by use of Tomek links and \acrfull{smote} to balance the class distributions,
+standardisation of the numerical input features and best subset selection using backwards subset selection. The \acrshort{knn}
+algorithm implemented is robust to missing values, outliers and noise in the dataset. The decision tree is induced to overfit the data
+and seperate the classes with 100\% accuracy and by use of post-pruning, to optimise the tree and make the model less prone to overfit.
+
+By the use of k-fold cross-validation and performance metrics such as accuracy for the \acrshort{knn} model, because of the evenly
+distributed classes and F1-score for the decision tree classification model, because of the imbalanced distributed classes,
+it was shown that both classification models can effectively be applied to the Dry Bean dataset. After the implementation
+of a grid search and the appropriate statistical tests, to determine the optimal values for the number of neighbours and the optimal
+distace function to use, the \acrshort{knn} model produced a number of neighbours equal to 147 and the distance metric used was
+the Euclidean distance metric. The optimal values for the maximum depth and minimum sample split for the decision tree after
+the implementation of a grid search and the appropriate statistical tests came out to be 9 and 2 respectively.
+
+In conclusion, both the \acrshort{knn} and decision tree models are viable methods for the task of classification on the Dry Bean dataset.
+However, the model that performs better classifications on the Dry Bean dataset is the \acrshort{knn} classification model.
+
 \begin{thebibliography}{00}
     \bibitem{Missing_ref} A. C. Acock "Working with missing values." In: Journal of Marriage and family (2005).
     \bibitem{Performance_ref} J. Braet, M. Cristina, Hinojosa-Lee, and J. Springael. "Evaluating performance metrics in emotion lexicon distillation: a focus on F1 scores." (2024).
@@ -853,62 +952,6 @@ control parameters for both the \acrshort{knn} and classification tree models.
 
 
 \printglossary[type=\acronymtype]
-
-\clearpage
-
-\begin{table*}[h!]
-    % \caption{\textbf{Continuous Features}}
-    \caption{Continuous Features}
-    \begin{center}
-    \begin{tabular}{|c||c|c|c|c|c|c|c|c|c|c|}
-        \hline
-        \textbf{Features}&\textbf{Count}&\textbf{\% Miss.}&\textbf{Card.}&\textbf{Min.}&\textbf{$1^{st}$ Qrt.}&\textbf{Mean}&\textbf{Median}&\textbf{$3^{rd}$ Qrt.}&\textbf{Max}.&\textbf{Std Dev.}\\
-        \hline
-        %   	                    Count   % Miss     Card.    Min         1st Q       Mean          Median      3rd Q       Max         Std Dev
-        \textbf{Area}               &13611  &0.0       &12011   &20420      &36328      &53048.284549 &44652      &61332      &254616     &29324.095717\\
-        \textbf{Perimeter}          &13611  &0.0       &13351   &524.736    &703.5235   &855.283459   &794.941    &977.213    &1985.37    &214.289696\\
-        \textbf{MajorAxisLength}    &13611  &0.0       &13543   &183.601165 &253.303633 &320.141867   &296.883367 &376.495012 &738.860153 &85.694186\\
-        \textbf{MinorAxisLength}    &13611  &0.0       &13543   &122.512653 &175.848170	&202.270714   &192.431733 &217.031741 &460.198497 &44.970091\\
-        \textbf{AspectRation}       &13611  &0.0       &13543   &1.024868   &1.432307   &1.583242     &1.551124   &1.707109	  &2.430306   &0.246678\\
-        \textbf{Eccentricity}       &13611  &0.0       &13543   &0.218951   &0.715928   &0.750895     &0.764441	  &0.810466	  &0.911423   &0.092002\\
-        \textbf{ConvexArea}         &13611  &0.0       &12066   &-30        &36714.5    &53765.692602 &45178      &62294      &263261     &29778.009358\\
-        \textbf{EquivDiameter}      &13611  &0.0       &12012   &0.161417   &215.068003 &476.254106   &238.438026 &279.452162 &3014441    &25836.865632\\
-        \textbf{Extent}             &13611  &0.044082  &13529   &0.555315   &0.718641   &0.749747     &0.759874   &0.786852	  &0.866195	  &0.049085\\
-        \textbf{Solidity}           &13611  &0.0       &13526   &0.919246	&0.985670	&0.987143     &0.988283   &0.990013   &0.994677   &0.004660	\\
-        \textbf{Roundness}          &13611  &0.0       &13543   &0.489618   &0.832096   &0.873282     &0.883157   &0.916869   &0.990685   &0.059520\\
-        \textbf{Compactness}        &13611  &0.132246  &13525   &0.640577	&0.762577	&0.799886	  &0.801291	  &0.834270   &0.987303   &0.061684\\
-        \textbf{ShapeFactor1}       &13611  &0.0       &13543   &0.002778   &0.005900   &0.006564	  &0.006645   &0.007271   &0.010451   &0.001128\\
-        \textbf{ShapeFactor2}       &13611  &0.0       &13543   &0.000564	&0.001154	&0.001716	  &0.001694	  &0.002170   &0.003665   &0.000596\\
-        \textbf{ShapeFactor3}       &13611  &0.0       &13543   &0.410339   &0.581359	&0.643590     &0.642044	  &0.696006	  &0.974767   &0.098996\\
-        \textbf{ShapeFactor4}       &13611  &0.0       &13611   &0.695579	&1.614151	&2.368097	  &2.368757   &3.115695	  &3.966119   &0.871619\\
-        \textbf{ShapeFactor5}       &13611  &0.0       &13543   &0.947687   &0.993703   &0.995063	  &0.996386	  &0.997883   &0.999733   &0.004366\\
-        \textbf{ShapeFactor6}       &13611  &0.036735  &13606   &0.000466	&45.258826	&89.358603	  &88.76667   &134.273148 &178.985023 &51.838555\\
-        \textbf{Sort order}         &13611  &0.0       &13611   &0.000089   &0.248187   &0.500271     &0.50381    &0.750096   &0.999985   &0.287926\\
-
-        \hline
-    \end{tabular}
-    \label{tab:continuous features}
-    \end{center}
-\end{table*}
-
-\begin{table*}[h!]
-    % \caption{\textbf{Continuous Features}}
-    \caption{Categorical Features}
-    \begin{center}
-    \begin{tabular}{|c||c|c|c|c|c|c|c|c|c|}
-        \hline
-        \textbf{Features}&\textbf{Count}&\textbf{\% Miss.}&\textbf{Card.}&\textbf{Mode}&\textbf{Mode Freq.}&\textbf{Mode \%}&\textbf{$2^{nd}$ Mode}&\textbf{$2^{nd}$ Mode Freq.}&\textbf{$2^{nd}$ Mode \%}\\
-        \hline
-        %   	                    Count   % Miss     Card.    Mode      Mode Freq   Mode %        2nd Mode    2nd Mode Freq  2nd Mode %
-        \textbf{Constantness}       &13611  &0.0       &2       &1        &12289      &90.287268     &0          &1322         &9.712732\\
-        \textbf{Colour}             &13611  &0.044082  &4       &brown    &6115       &44.926897    &black      &3541          &26.015723\\
-        \textbf{Class}              &13611  &0.124899  &7       &DERMASON &3542       &26.02307     &SIRA       &2634          &19.351995\\
-
-        \hline
-    \end{tabular}
-    \label{tab:categorical features}
-    \end{center}
-\end{table*}
 
 \begin{table}[h!]
     \caption{Hyperparameter tuning for Classification tree}
