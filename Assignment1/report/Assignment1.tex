@@ -913,172 +913,10 @@ The statistical significance of the results from the \acrshort{knn} and classifi
 by the evaluation of the accuracy and weighted F1-score respectively of each of the models implemented by the use
 of a 5-fold cross-validation over a grid of different possible values that the control parameters could be. By use of the Kruskal-Wallis
 test to check for stochastic dominance amongst the samples. The paired t-test was then performed to obtain this optimal value of the
-control parameters for both the \acrshort{knn} and classification tree models. A significance level of $0.05$ is used.
+control parameters for both the \acrshort{knn} and classification tree models.
 
 \section{Research Results} \label{section:Research Results}
 
-This section provides an overview of the experimental results collected and the outcomes of the empirical analysis conducted on the
-DryBeanDataSet by use of the implemented classification algorithms: \acrshort{knn} and decision tree.
-
-\subsection{Correlation Matrix}
-
-The values in this correlation matrix ranges from negative one to one, where a value of one indicates a strong posiive linear relationship
-between the features, a value of negative one indicates a strong negative linear relationship between the features and a value of zero indicates
-that the features have no linear relationship. Figure \ref{Correlation_matrix} shows the correlation matrix of the features in the Dry Beans
-dataset after the `Colour' feature has been one hot encoded and the `Class' feature has been transformed into an ordinal encoded feature.
-\begin{figure}[H]
-    \centerline{\includegraphics[scale=0.45]{../Plots/Correlation Matrix.PNG}}
-    \caption{Correlation matrix of the Dry Bean dataset features}
-    \label{Correlation_matrix}
-\end{figure}
-
-After the examination of Figure \ref{Correlation_matrix}, there are a few observations that can be made. The first observation is that
-the features `Area', `Perimeter' and `MajorAxisLength' are strongly positive correlated features with one another and `ShapeFactor1' and
-`ShapeFactor2' are strongly negative correlated features with one another.
-The features `Constantness' and `Equivdiameter' have low or near-zero correlations with many features, suggesting that these features
-might be irrelevant features
-
-\subsection{Best Subset for KNN}
-
-When backwards subset selection is implemented, the model starts as a dataset that contains all of the features. One feature is
-dropped from this set and a \acrshort{knn} model is created from the new subset. The accuracy score is then calculated for this
-subset as the inner criteria and the feature is added back into the subset. Then the next feature is dropped and the process
-follows the same. This process is done until all of the features have been dropped and a \acrshort{knn} model has been implemented
-for each smaller subset. The subset that obtained the highest score is then considered the best subset of the features with one
-less feature than the original dataset has. This best feature subset is then taken and the process is repeated until there is only a
-subset left with one feature. This process of the inner criteria helps reduce the bias of the model.
-
-The subsets obtained in the process above is then taken and an outer criteria is applied to each one of them. The outer criteria in
-this case is a k-fold cross-validation. The scores of each of these k-fold iterations were computed and the mean of the scores
-is calculated. The mean error is then calculated as well as the standard deviation of the mean error. In Figure \ref{Subset}
-the mean cross-validation error is represented by the dot and the error bar is the standard deviation of the score errors.
-
-\begin{figure}[h!]
-    \centerline{\includegraphics[scale=0.45]{../Plots/Best_subset.PNG}}
-    \caption{Cross validation error of the different sized subsets}
-    \label{Subset}
-\end{figure}
-
-When the one standard deviation rule is applied to the graph, it is seen that the smallest subset of features that falls
-within one standard deviation of the feature with the lowest score, in this case the subset with 18 features, is the subset
-with 14 features. Hence the best subset to use for the \acrshort{knn} is the subset with 14 features.
-
-\subsection{Hyperparameters}
-
-\paragraph{K Nearest Neighbours}
-
-The \acrshort{knn} model has two hyperparameters that needs to be tuned. The first of which is the value of $p$, that indicates
-which distance metric should be used and the second parameter is the value of the number of nearest neighbours or $k$. By first
-tuning the value of $p$ using a grid search, it is found that the Euclidean distance performed better on the Dry Bean dataset.
-After obtaining the value of $p$, 50 \acrshort{knn} models were fitted to the grid search using a 5-fold cross-validation to
-determine the optimal value for $k$. The 50 values that $k$ is tested on is the values between 85 to 185 with an increment of
-two between each value. The Figure \ref{KNN_tuning} shows how each \acrshort{knn} model performed on average after a 5-fold cross-validation.
-
-\begin{figure}[h!]
-    \centerline{\includegraphics[scale=0.42]{../Plots/KNN_hyperparameter.PNG}}
-    \caption{Mean test scores vs the number of neighbours}
-    \label{KNN_tuning}
-\end{figure}
-
-Running a Kruskal-Wallis test ons these 5-fold cross-validation scores yielded a Kruskal-Wallis H-statistic equal to $141.9776$
-and a p-value of $5.5326e-11$, which indicates that there is a significant difference between the performance of different $k$ values.
-To identify where this significant difference lies, a paired t-test statistic is used. From a \acrshort{knn} model with 145 number of neighbours
-to a \acrshort{knn} model with 147 number of neighbours, the paired t-test returns a p-value of $0.0341$. The paired t-test and the Kruskal-Wallis
-p-value is smaller than the significance level of $0.05$ and therefore can the optimal value of $k$ be chosen as 147.
-
-\paragraph{Classification Tree}
-
-The two hyperparameters that needs to be tuned for the classification tree is the maximum depth of the tree and the minimum sample split.
-The dataset used on the classification tree is unbalanced and therefore, the weighted F1-score is used to perform the statistical tests.
-After all of the 5-fold cross-validation scores are obtained and the paired t-test has been computed for a grid search where the maximum depth
-was tested to be $[8,9,10,11,12]$ and the minimum sample split is tested to be $[2,3,4,5]$, the most optimal value obtained for each of these
-grids is $9$ for the maximum depth and $2$ for the minimum sample split.
-
-\subsection{Model Evaluation}
-
-The final models to be evaluated is a \acrshort{knn} model with the Euclidean distance metric and a $k$ value of 147. Aswell
-as the final classification tree model with a maximum depth of $9$ and a minimum sample split of $2$.
-
-After inducing the tree and post-pruning is applied, the tree that is used to perform classification tasks on is given
-by Figure \ref{CT_plot}.
-
-\begin{figure}[h!]
-    \centerline{\includegraphics[scale=0.33]{../Plots/Classification tree.png}}
-    \caption{Classification tree}
-    \label{CT_plot}
-\end{figure}
-
-In Table \ref{tab:knn_cfr}, all of the performance metrics are shown on how the \acrshort{knn}
-performed on the Dry Bean dataset.
-\begin{table}[H]
-    \caption{Classification report for the \acrshort{knn}}
-    \begin{center}
-        \begin{tabular}{|c||c|c|c|c|}
-            \hline
-                        & \textbf{precision} & \textbf{recall} & \textbf{f1-score} & \textbf{support} \\
-            \hline
-            \textbf{BARBUNYA}  &  0.97  &    0.94   &   0.95   &    651\\
-            \textbf{BOMBAY}  & 1.00   &   1.00   &   1.00   &    639\\
-            \textbf{CALI} & 0.95   &   0.97   &   0.96   &    634\\
-            \textbf{DERMASON} & 1.00   &   0.99  &    1.00   &    629\\
-            \textbf{HOROZ} &  1.00   &   1.00   &   1.00    &   655\\
-            \textbf{SEKER} & 1.00  &    0.99   &   1.00    &   635\\
-            \textbf{SIRA} &  0.97  &    0.99   &   0.98    &   643\\
-            \textbf{accuracy} & & & 0.98   &   4486\\
-            \textbf{macro avg} &0.98   &   0.98   &   0.98   &   4486\\
-            \textbf{weighted avg} & 0.98    &  0.98  &    0.98   &   4486\\
-            \hline
-        \end{tabular}
-    \end{center}
-    \label{tab:knn_cfr}
-\end{table}
-
-In Table \ref{tab:ct_cfr}, all of the performance metrics are shown on how the \acrshort{knn}
-performed on the Dry Bean dataset.
-\begin{table}[h!]
-    \caption{Classification report for the classification tree}
-    \begin{center}
-        \begin{tabular}{|c||c|c|c|c|}
-            \hline
-                        & \textbf{precision} & \textbf{recall} & \textbf{f1-score} & \textbf{support} \\
-            \hline
-            \textbf{BARBUNYA}  &  0.86   &   0.91   &   0.88    &   289\\
-            \textbf{BOMBAY}  & 1.00 & 1.00 & 1.00 & 98\\
-            \textbf{CALI} & 0.93   &   0.89   &   0.91    &   323\\
-            \textbf{DERMASON} & 0.95   &   0.98   &   0.97   &    698\\
-            \textbf{HOROZ} & 0.99   &   0.99   &   0.99    &   383\\
-            \textbf{SEKER} & 0.99   &   0.99   &   0.99    &   391\\
-            \textbf{SIRA} & 0.97   &   0.92   &   0.95    &   536\\
-            \textbf{accuracy} & & & 0.96   &   2718\\
-            \textbf{macro avg} & 0.96   &   0.96   &   0.96   &   2718\\
-            \textbf{weighted avg} & 0.96  &    0.96   &   0.96   &   2718\\
-            \hline
-        \end{tabular}
-    \end{center}
-    \label{tab:ct_cfr}
-\end{table}
-
-Figure \ref{KNN confusion matrix} shows the classification matrix of the \acrshort{knn} model
-obtained after classification of the test set.
-\begin{figure}[H]
-    \centerline{\includegraphics[scale=0.5]{../Plots/KNN_confusion_matix.PNG}}
-    \caption{Confusion matrix obtained by the \acrshort{knn} model}
-    \label{KNN confusion matrix}
-\end{figure}
-
-Figure \ref{CT confusion matrix} shows the classification matrix of the classification tree model
-obtained after classification of the test set.
-\begin{figure}[H]
-    \centerline{\includegraphics[scale=0.5]{../Plots/Classification tree confusion matrix.png}}
-    \caption{Confusion matrix obtained by the \acrshort{knn} model}
-    \label{CT confusion matrix}
-\end{figure}
-
-After the evaluation of the models, it is clear that \acrshort{knn} is the better prediction model for the
-Dry Bean dataset. This is to be expected, considering that most of the features in the Dry Bean dataset is
-numerical features and that the classification tree groups all unique values of the numerical features into
-categorical features. \acrshort{knn} calculates the distance between the instances of each feature, so it makes sence
-why \acrshort{knn} performs the best on the Dry Bean dataset.
 
 \section{Conclusion} \label{section:Conclusion}
 
@@ -1101,8 +939,6 @@ the implementation of a grid search and the appropriate statistical tests came o
 In conclusion, both the \acrshort{knn} and decision tree models are viable methods for the task of classification on the Dry Bean dataset.
 However, the model that performs better classifications on the Dry Bean dataset is the \acrshort{knn} classification model.
 
-\footnote{Code to the project can be found here: https://github.com/Andrevan071/ML441Assignments}
-
 \begin{thebibliography}{00}
     \bibitem{Missing_ref} A. C. Acock "Working with missing values." In: Journal of Marriage and family (2005).
     \bibitem{Performance_ref} J. Braet, M. Cristina, Hinojosa-Lee, and J. Springael. "Evaluating performance metrics in emotion lexicon distillation: a focus on F1 scores." (2024).
@@ -1117,5 +953,42 @@ However, the model that performs better classifications on the Dry Bean dataset 
 
 \printglossary[type=\acronymtype]
 
+\begin{table}[h!]
+    \caption{Hyperparameter tuning for Classification tree}
+    \begin{center}
+        \begin{tabular}{|c||c|c|c|c|}
+            % \hline
+            % \textbf{Max depth}
+            % \cline{0-5}
+                        & \textbf{2} & \textbf{3} & \textbf{4} & \textbf{5} \\
+            \hline
+            \textbf{8}  & 94.47388 & 94.47388 & 94.47388 & 94.45916\\
+            \textbf{9}  & 94.88595 & 94.86387 & 94.84180 & 94.82708\\
+            \textbf{10} & 94.83444 & 94.82708 & 94.74614 & 94.78293\\
+            \textbf{11} & 94.75350 & 94.73878 & 94.76821 & 94.79765\\
+            \textbf{12} & 94.79029 & 94.76821 & 94.77557 & 94.67255\\
+        \end{tabular}
+    \end{center}
+\end{table}
+
+% \begin{figure}[b!]
+%     \centerline{\includegraphics[scale=0.3]{../Plots/Classification tree confusion matrix.png}}
+%     \caption{Classification tree confusion matrix}
+%     \label{clf confusion matrix}
+% \end{figure}
+Classification Report:
+              precision    recall  f1-score   support
+
+    BARBUNYA       0.86      0.91      0.88       289
+      BOMBAY       1.00      1.00      1.00        98
+        CALI       0.93      0.89      0.91       323
+    DERMASON       0.95      0.98      0.97       698
+       HOROZ       0.99      0.99      0.99       383
+       SEKER       0.99      0.99      0.99       391
+        SIRA       0.97      0.92      0.95       536
+
+    accuracy                           0.96      2718
+   macro avg       0.96      0.96      0.96      2718
+weighted avg       0.96      0.96      0.96      2718
 
 \end{document}
