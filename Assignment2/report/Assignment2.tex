@@ -1,0 +1,1758 @@
+\documentclass[10pt, conference]{IEEEtran}
+\IEEEoverridecommandlockouts
+% The preceding line is only needed to identify funding in the first footnote. If that is unneeded, please comment it out.
+\usepackage{cite}
+\usepackage{amsmath,amssymb,amsfonts}
+\usepackage{algorithm}
+% \usepackage{algorithmic}
+\usepackage{algpseudocode}
+\usepackage{graphicx}
+\usepackage{textcomp}
+\usepackage{xcolor}
+\usepackage{bm}
+\usepackage{subcaption}
+\usepackage{float}
+\usepackage{afterpage}
+\usepackage[acronym]{glossaries}
+\def\BibTeX{{\rm B\kern-.05em{\sc i\kern-.025em b}\kern-.08em
+    T\kern-.1667em\lower.7ex\hbox{E}\kern-.125emX}}
+
+
+\makeglossaries
+
+\newacronym{ffnn}{FFNN}{feed forward neural network}
+\newacronym{fna}{FNA}{fine needle aspirate}
+\newacronym{lfop}{LFOP}{leap-frog optimisation}
+\newacronym{mse}{MSE}{mean squared error}
+\newacronym{nn}{NN}{neural network}
+\newacronym{pca}{PCA}{principal component analysis}
+\newacronym{relu}{RELU}{rectified linear unit}
+\newacronym{scg}{SCG}{scaled conjugate cradient}
+\newacronym{sgd}{SGD}{stochastic gradient descent}
+\newacronym{smote}{SMOTE}{synthetic minority oversampling technique}
+
+\begin{document}
+
+\title{Assignment 2 Option 2 \\
+Comparative Analysis of Stochastic Gradient Descent, Scaled Conjugate Gradient,
+and Leapfrog Optimisation Algorithms for Feed Forward Neural Networks
+}
+
+\author{\IEEEauthorblockN{A.D. van der Merwe}
+\IEEEauthorblockA{Department of Computer Science \\
+University of Stellenbosch\\
+24923273 \\
+24923273@sun.ac.za}
+}
+
+\maketitle
+
+\begin{abstract}
+In this report, the application of optimisation algorithms is explored, with a focus on the \acrfull{sgd}
+optimisation algorithm, the \acrfull{scg} optimisation algorithm, and the \acrfull{lfop} algorithm.
+All three optimisation algorithms are implemented in a \acrfull{ffnn} model to compare these
+optimisation algorithms performances against one another. Classification tasks and function
+approximation tasks that vary in complexity are explored to thoroughly to compare the
+\acrshort{sgd} optimisation algorithm, the \acrshort{scg} optimisation algorithm, and
+the \acrshort{lfop} algorithm with one another.
+\end{abstract}
+
+\section{Introduction}
+
+The optimisation algorithm used to adjust the weights of a \acrfull{ffnn} model significantly influences the
+performance of the model. Different optimisation techniques can impact convergence rates, performance, and
+general effectiveness when patterns from the data are learned. Optimisation algorithms have various strenghts
+and weaknesses, and to understand each of these strenghts and weaknesses is crucial for the selection of the most
+suitable approach for the specific task.
+
+This paper focuses on three optimisation algorithms, namely the \acrfull{sgd} optimisation algorithm, the
+\acrfull{scg} optimisation algorithm, and the \acrfull{lfop} algorithm. This paper conducts a comparative analysis
+of the \acrshort{sgd}, \acrshort{scg}, and \acrshort{lfop} algorithms by the construction of a one hidden layer
+\acrshort{ffnn} model that utilises each optimisation algorithm. The results show that the \acrshort{sgd} optimisation
+algorithm performs exceptionally well in function approximation tasks and large datasets with complex data patterns.
+However the \acrshort{sgd} optimisation algorithm is computationally expensive. The \acrshort{scg} algorithm quickly
+converges and works best with smaller datasets, while the \acrshort{lfop} algorithm outperforms the other optimisation algorithms on
+datasets that is more susceptible to a local minima.
+
+To better understand these strengths and weaknesses, this paper implements three classification tasks and three
+function approximation tasks that vary in complexity.
+
+The rest of this paper is structured as follows: Section \ref{section: Background} provides background
+information on the \acrshort{ffnn} model, the \acrshort{sgd} optimisation algorithm, the \acrshort{scg}
+optimisation algorithm, and the \acrshort{lfop} algorithm. Additionally, background on different activation
+functions, objective functions, performance metrics, and weight decay. Section \ref{section: Implementation}
+provides the implementation of the \acrshort{ffnn} model, and the three optimisation algorithms.
+Section \ref{section: Empeirical Procedure} provides the empirical procedure and Section
+\ref{section: Research Results} provides the research results.
+
+\section{Background} \label{section: Background}
+
+This section presents background information on the \acrshort{ffnn} model. Additionally, information on different
+activation functions and three different optimisation algorithms used to train the \acrshort{ffnn} model. This
+section also presents background information on the different objective functions and performance metrics used
+to evaluate the \acrshort{ffnn} model, as well as background on weight decay regularisation.
+
+\subsection{Feed Forward Neural Network} \label{section: FFNN_background}
+
+The concept of a \acrshort{ffnn} was first introduced by Warren McCulloch and Walter Pitts in 1943 \cite{FFNN_ref}.
+McCulloch and Pitts developed a basic binary model of a neuron that formed the basic idea of a \acrshort{ffnn}. The
+model uses weighted inputs and a threshold to perform simple logical operations such as AND, OR, and NOT.
+
+In 1958, Frank Rosenblatt developed one of the earliest practical implementations of a \acrshort{ffnn} neural network
+called a Perceptron \cite{Perceptron_ref}. This single-layer network was designed to learn from data over time by the
+adjustment of the weights based on the input data to perform binary classification tasks. One drawback of the perceptron
+is that it solves only linearly separable problems.
+
+In 1986, the backpropagation algorithm was developed by David Rumelhart, Geoffrey Hinton, and Ronald J. Williams
+\cite{backpropagation_ref}. The backpropagation algorithm enabled the ability to train multilayer \acrshort{ffnn}
+that addressed the problems of non-linearly separable classes.
+
+A \acrshort{ffnn} consists of three layers, namely the input layer, hidden layer and output layer. A \acrshort{ffnn}
+can have more than one hidden layer and only one input and output layer. To train a \acrshort{ffnn} an iterative process
+with multiple passes through the training set is used. One pass through the training set is known as an epoch.
+There are two optimisation methods to use when a \acrshort{ffnn} is trained, namely stochastic learning and batch learning.
+
+When stochastic learning is applied, the weights are adjusted after each pattern that is presented.
+The patterns are randomly selected in each iteration to prevent the model from overfitting to the specific order of
+patterns in the training set, which helps the model generalise better. In batch learning, weight updates are gathered
+and used to adjust weights only after all training patterns have been presented.
+
+The equation used to calculate the output neuron of a \acrshort{ffnn} with one hidden layer is as follows:
+\begin{equation}
+    o_{k,p} = f_{o_k} \left( \sum_{j=1}^{J+1} w_{kj}f_{y_j} \left( \sum_{i=1}^{I+1} v_{ji}z_{i,p} \right) \right)
+\end{equation}
+
+where $o_{k,p}$ is the output of the $k$-th neuron for the $p$-th input pattern, $y_j$ is the $j$-th neuron in
+the hidden layer, $f_{o_k}$ and $f_{y_j}$ are the
+activation function for output neuron $o_k$ and hidden neuron $y_j$ respectively, $w_{kj}$ is the weight between
+output neuron $o_k$ and hidden neuron $y_j$, $v_{ji}$ is the weight between hidden neuron $y_j$ and input neuron
+$z_i$, $z_{i,p}$ is the value of the $i$-th input neuron for the $p$-th input pattern and the $(I+1)$-th input
+neuron and the $(J+1)$-th hidden neuron are bias neurons that represents the threshold values of neurons in the
+next layer.
+
+There are several optimisation algorithms that can be used when a \acrshort{ffnn} is trained. These Algorithms
+are grouped into two classes, namely:
+\begin{itemize}
+    \item Local optimisation, where the algorithm might never find the global minimum, as the algorithm might get stuck in
+            a local minimum. Examples of local optimisation algorithms are \acrshort{sgd} and \acrshort{scg}.
+    \item Global optimisation, where the algorithm employes mechanisms to search larger parts of the search space to find 
+            the local minimum. An example of a global optimisation algorithm is the \acrshort{lfop} algorithm.
+\end{itemize}
+
+\subsection{Activation Functions} \label{section: Act_Func_background}
+
+Activation functions are used in a \acrfull{nn} to introduce non-linearity that enables the model to learn more
+complex patterns \cite{activation_function_ref}. Without activation functions, a \acrshort{nn} can only seperate
+linear data, that limits the performance and capability of the model in most cases.
+
+An activation function receives the net input signal and bias of the previous layer and determines the output
+of the neuron. The net input of the hidden layer is calculated with the equation below:
+\begin{equation}
+    net_{y_{j,p}} = \sum_{i=1}^{I+1} v_{ji} z_{i,p} \label{eq: net_hidden}
+\end{equation}
+where $net_{y_{j,p}}$ is the net input of the $j$-th neuron in the hidden layer for the $p$-th pattern.
+
+The equation of the net input equation of the output layer is as follows:
+\begin{equation}
+    net_{o_{k,p}} = \sum_{j=1}^{J+1} w_{kj} y_{j,p} \label{eq: net_output}
+\end{equation}
+where $net_{o_{k,p}}$ is the net input of the $k$-th neuron in the output layer for the $p$-th pattern.
+
+Several activation functions can be used when a \acrshort{ffnn} model is constructed, such as the sigmoid activation
+function, the softmax activation function, the linear activation function and the \acrfull{relu} activation function.
+
+\subsubsection{Sigmoid activation function}
+The sigmoid activation function is primarily used in the output layer for binary classification tasks.
+The equation used to calculate the sigmoid activation function of the output layer is as follows:
+\begin{equation}
+    o_{k,p} = f_{o_k}(net_{o_{k,p}}) = \frac{1}{1 + e^{-net_{o_{k,p}}}} \label{eq: sigmoid_activation}
+\end{equation}
+In this case, the output layer contains only one neuron, so the only value that $k$ can take is one.
+
+The derivative of the sigmoid activation function of the output layer is given by the equation below:
+\begin{equation}
+    f'_{o_k}(net_{o_{k,p}}) = (1-o_{k,p})o_{k,p} \label{eq: sigmoid_activation_derivative}
+\end{equation}
+where $f'_{o_k}$ is the derivative of the activation function of the $k$-th output neuron.
+
+\subsubsection{Softmax activation function}
+The softmax activation function is commonly used in the output layer for multi-class classification tasks.
+To calculate the softmax activation function of the output layer, the equation below is used:
+\begin{equation}
+    o_{k,p} = f_{o_k}(net_{o_{k,p}}) = \frac{e^{net_{o_{k,p}}}}{\Sigma_{l=1}^K e^{net_{o_{l,p}}}} \label{eq: softmax_activation}
+\end{equation}
+where $K$ is the number of classes in the multi-class classifier. The softmax activation function returns $K$ values
+that sums up to one and the pattern is then classified as the class corresponding to the largest output value.
+
+\subsubsection{Linear activation function}
+The linear activation function is mainly used for regression tasks in the output layer of the \acrshort{ffnn}.
+The output of the \acrshort{ffnn} model that uses a linear activation function in the output layer will result in
+a continuous value, that makes the \acrshort{ffnn} model suitable to predict real-valued outcomes or for functions
+approximate tasks. To equation used to calculate the linear activation function of the output layer is as follows:
+\begin{equation}
+    o_{k,p} = f_{o_k}(net_{o_{k,p}}) = net_{o_{k,p}} \label{eq: linear_activation}
+\end{equation}
+In this case, the output layer contains only one neuron, so the only value that $k$ can take is one.
+
+\subsubsection{RELU activation function}
+The \acrshort{relu} activation function is widely used in the hidden layers of a \acrshort{nn} as it
+helps with faster convergence and reduces the likelihood of the problem where the gradient vanishes \cite{relu_ref}.
+The equation used to calculate the \acrshort{relu} activation function of the hidden layer is as follows:
+\begin{equation}
+    y_{j,p} = f_{y_j}(net_{y_{j,p}}) = max(0,net_{y_{j,p}}) \label{eq: relu_activation}
+\end{equation}
+The derivative of the \acrshort{relu} activation function is expressed by use of the equation below:
+\begin{equation}
+    f'_{y_j}(net_{y_{j,p}}) = \left\{\begin{array}{ll}1 & net_{y_{j,p}} > 0 \\ 0 & net_{y_{j,p}} \leq 0 \\\end{array}\right. \label{eq: relu_activation_derivative}
+\end{equation}
+where $f'_{y_j}$ is the derivative of the activation function of the $j$-th hidden neuron.
+
+\subsection{Objective Functions} \label{section: Obj_Func_background}
+
+An objective function measures the discrepancy between the actual target values of each pattern in a dataset and the
+output values produced by the \acrshort{ffnn} model \cite{objective_function_ref}. The \acrshort{ffnn} model attempts
+to find the values of each weight from the input layer to the hidden layer, $v_{ji}$, and each weight from the hidden
+to the output layer, $w_{kj}$, that minimises the objective function of the model. A few examples of different types
+of objective functions is the binary cross-entropy error, the categorical cross-entropy error and the \acrfull{mse}.
+
+\subsubsection{Binary cross-entropy error}
+
+The binary cross-entropy objective function is primarily used for binary classification tasks and therefore it is a
+good choice to use this objective function when the sigmoid activation function is used as the activation function
+in the output layer of a \acrshort{ffnn} model. The equation used to calculate the binary cross-entropy objective
+function for the \acrshort{ffnn} output layer that employs a sigmoid activation function is as follows:
+\begin{equation}
+    \mathcal{E} = - \frac{1}{P} \sum_{p=1}^{P} \left( (t_{k,p}log(o_{k,p})) + (1 - t_{k,p})log(1 - o_{k,p}) \right) \label{eq: bce_objective_function}
+\end{equation}
+where $\mathcal{E}$ is the objective function of the \acrshort{ffnn}, $k$ can only be a value of 1 as there is only
+one neuron in the output layer, $P$ is the number of patterns in the dataset and $t_{k,p}$ is the true target value of the $p$-th
+pattern.
+
+The derivative of the binary cross-entropy objective function with respect to the net input signal for the \acrshort{ffnn} output
+layer that employs a sigmoid activation function is calculated by the use of the equation below:
+\begin{equation}
+    \delta_{o_{k,p}} = (o_{k,p} - t_{k,p})f'_{o_k}(net_{o_{k,p}}) \label{eq: sigmoid_error_signal}
+\end{equation}
+where $\delta_{o_{k,p}}$ is the error signal of the $k$-th neuron for the $p$-th pattern.
+$f'_{o_k}(net_{o_{k,p}})$ is calculated as shown in Equation \ref{eq: sigmoid_activation_derivative}.
+
+\subsubsection{Categorical cross-entropy error}
+
+The categorical cross-entropy objective function is typically used in multi-class classification tasks, which makes the
+objective function a good choice when the softmax activation function is deployed as the activation function for the output
+layer of a \acrshort{ffnn} model. The equation used to calculate the categorical cross-entropy objective
+function for the \acrshort{ffnn} output layer that employs a softmax activation function is as follows:
+\begin{equation}
+    \mathcal{E} = -\frac{1}{P} \sum_{p=1}^{P} \sum_{k=1}^{K} t_{k,p}log(o_{k,p}) \label{eq: cce_objective_function}
+\end{equation}
+
+The derivative of the categorical cross-entropy objective function with respect to the net input signal for the
+\acrshort{ffnn} output layer, which uses a softmax activation function, can be calculated by use of the equation below:
+\begin{equation}
+    \delta_{o_{k,p}} = o_{k,p} - t_{k,p} \label{eq: softmax_error_signal}
+\end{equation}
+
+\subsubsection{\acrshort{mse}}
+
+The \acrshort{mse} objective function is commonly used for regression tasks, and it is a suitable choice when a linear
+activation function is employed in the output layer of a \acrshort{ffnn} model. If the output layer of a \acrshort{ffnn}
+model employs a linear activation function, then the equation used to calculate the \acrshort{mse} objective
+function is as follows:
+\begin{equation}
+    \mathcal{E} = \frac{1}{P} \sum_{p=1}^{P} (t_{k,p} - o_{k,p})^2 \label{eq: mse_objective_function}
+\end{equation}
+where $k$ can only be a value of 1 as there is only one neuron in the output layer.
+
+The derivative of the \acrshort{mse} objective function with respect to the net input signal for the \acrshort{ffnn} output
+layer that employs a linear activation function is calculated by the use of the equation below:
+\begin{equation}
+    \delta_{o_{k,p}} = \frac{2}{P} (t_{k,p} - o_{k,p}) \label{eq: mse_error_signal}
+\end{equation}
+
+\subsubsection{Error signal of the hidden layer}
+
+The hidden layer of the \acrshort{ffnn} model employs a \acrshort{relu} activation function. To calculate the error
+signal for the hidden layer, the derivative of the objective function with respect to the net input signal
+for hidden layer is calculated. The equation follows as:
+\begin{equation}
+    \delta_{y_{j,p}} = \sum_{k=1}^{K} \delta_{o_{k,p}} w_{kj} f'_{y_j}(net_{y_{j,p}}) \label{eq: relu_error_signal}
+\end{equation}
+where $f'_{y_j}(net_{y_{j,p}})$ is calculated as shown in Equation \ref{eq: relu_activation_derivative}.
+
+\subsection{Stochastic Gradient Descent} \label{section: SGD_background}
+
+The concept of \acrshort{sgd} was first introduced in 1951 when Sutton Monro and Herbert Robbins proposed the idea
+to update parameters iteratively by the use of randomly or noisy sampled data points \cite{sgd_ref_1}. In 1952,
+Jack Kiefer and Jacob Wolfowitz introduced the machine learning variant of \acrshort{sgd}, that extended the ideas
+proposed by Monro and Robbins \cite{sgd_ref_2}. Kiefer and Wolfowitz developed an algorithm to estimate the minimum of an unknown
+function by iteratively adjusted parameters based on sampled data.
+
+The \acrshort{sgd} optimisation algorithm is a stochastic learning algorithm that can optimise a \acrshort{ffnn}.
+Each iteration consists of two phases when the \acrshort{sgd} optimisation algorithm is applied to a \acrshort{ffnn}. The
+first phase is the feedforward pass phase, where the output values of the \acrshort{nn} are calculated
+for each pattern used to construct the model. The second phase, known as backward propagation, propagates the error
+signal from the output layer back toward the input layer. The weights are then adjusted as functions of the
+backpropagated error signal. The next epoch is executed with the updated weights. The \acrshort{sgd} optimisation
+algorithm used in a \acrshort{ffnn} with one hidden layer is represented by Algorithm \ref{alg:SGD_algorithm}
+
+\begin{algorithm}[H]
+    \caption{Stochastic Gradient Descent}
+    \label{alg:SGD_algorithm}
+    \begin{algorithmic}[1]
+        \State Initialise weights, the learning rate $\eta$, the momentum $\alpha$, and the number of epochs $t$ = 0
+        \While{stopping condition(s) not true}
+            \State Let $\mathcal{E}_T = 0$
+            \For{each randomly selected training pattern $p$}
+                \State Do the feedforward phase to calculate $y_{j,p}$ ($\forall$ $j = 1,...,J$) and $o_{k,p}$ ($\forall$ $k = 1,...,K$)
+                \State Compute output error signals $\delta_{o_{k,p}}$ and hidden layer error signals $\delta_{y_{j,p}}$
+                \State Adjust weights $w_{kj}$ and $v_{ji}$ (backpropagation of errors)
+                \State $\mathcal{E}_T$ $+= [\mathcal{E}_p = \Sigma_{k=1}^K (t_{k,p}log(o_{k,p}))]$
+            \EndFor
+            \State $t = t + 1$
+        \EndWhile
+    \end{algorithmic}
+\end{algorithm}
+
+The conditions used to stop the algorithm are:
+\begin{itemize}
+    \item When the validation error, $\mathcal{E}_v$, reaches an acceptable level
+    \item When the maximum number of epochs is exceeded
+    \item When the model becomes prone to overfitting the data.
+    \item When the average weight changes is very small
+\end{itemize}
+
+The equation used to adjust the weights that connects the input layer to the hidden layer is as follows:
+\begin{equation}
+    v_{ji}(t) += \Delta v_{ji}(t) + \alpha \Delta v_{ji}(t-1) \label{eq: v_weights_update}
+\end{equation}
+where $alpha$ is the momentum of the \acrshort{ffnn} model and the equation to calculate $\Delta v_{ji}(t)$ is as
+follows:
+\begin{equation}
+    \Delta v_{ji}(t) = -\eta \delta_{y_{j,p}} z_{i,p} \label{eq: delta_v}
+\end{equation}
+where $\eta$ is the learning rate of the \acrshort{ffnn} model and $\delta_{y_{j,p}}$ is calculated as shown
+in Equation \ref{eq: relu_error_signal}.
+
+The equation used to adjust the weights that connects the hidden layer to the output layer is as follows:
+\begin{equation}
+    w_{kj}(t) += \Delta w_{kj}(t) + \alpha \Delta w_{kj}(t-1) \label{eq: w_weights_update}
+\end{equation}
+where the calculation of $\Delta w_{kj}(t)$ is given by the equation below:
+\begin{equation}
+    \Delta w_{kj}(t) = -\eta \delta_{o_{k,p}} y_{j,p} \label{eq: delta_w}
+\end{equation}
+where the calculation for $\delta_{o_{k,p}}$ is shown in Equation \ref{eq: sigmoid_error_signal} if the sigmoid
+activation function is employed in the output layer of the \acrshort{ffnn} model. If the softmax activation
+function is employed, then $\delta_{o_{k,p}}$ is calculated as shown in Equation \ref{eq: softmax_error_signal}
+and if the linear activation function is employed, $\delta_{o_{k,p}}$ is calculated as shown in Equation
+\ref{eq: relu_error_signal}.
+
+\subsection{Scaled Conjugate Gradient} \label{section: SCG_background}
+
+The \acrshort{scg} optimisation algorithm was introduced by Martin Fodslette Møller in 1993, with the goal to create
+a supervised learning algorithm that eliminates some of the disadvantages that most optimisation algorithms possess
+\cite{scg_ref}. Specifically, \acrshort{scg} addresses issues such as the slow convergence rates and the dependency
+on the parameters that has to be specified by the user. Møller proposed the \acrshort{scg} algorithm as a batch
+learning algorithm, where the step sizes are automatically determined and the algorithm restarts if a good solution
+was not found. The \acrshort{scg} optimisation algorithm is summarised in Algorithm \ref{alg:SCG_algorithm}.
+
+\begin{algorithm}[H]
+    \caption{Scaled Conjugate Gradient}
+    \label{alg:SCG_algorithm}
+    \begin{algorithmic}[1]
+        \State Initialise the weight vector \textbf{w}$(1)$ and the scalars $\sigma > 0,$ $\lambda_1 > 0$ and $\bar{\lambda} = 0$
+        \State Let \textbf{p}$(1)$ = \textbf{r}$(1)$ = -$\mathcal{E}'$(\textbf{w}(1)), $t = 1$ and $success = true$
+        \State Label A: \textbf{if} $success = true$ \textbf{then}
+            \State \quad Calculate the second-order information
+        \State \textbf{end if}
+
+        \State Scale \textbf{s}$(t)$ and $\delta(t)$
+        \If {$\delta(t)$ $\leq 0$}
+            \State Make the Hessian matrix positive definite
+        \EndIf
+        \State Calculate the step size
+        \State Calculate the comparison parameter
+
+        \If {$\Delta(t) \geq 0$}
+            \State A successful reduction in error can be made, so adjust the weights
+            \State $\bar{\lambda}(t) = 0$
+            \State $success = true$
+            \If {$t$ $mod$ $n_w = 0$}
+                \State Restart the algorithm, with \textbf{p}$(t+1) = $ \textbf{r}$(t+1)$ and go to label A
+            \Else
+                \State Create a new conjugate direction
+            \EndIf
+
+            \If {$\Delta(t) \geq 0.75$}
+                \State Reduce the scale parameter with $\lambda(t) = \frac{1}{2}\lambda(t)$
+            \EndIf
+        \Else
+            \State A reduction in error is not possible, so let $\bar{\lambda}(t) = \lambda(t)$ and $success = false$
+        \EndIf
+
+        \If {$\Delta(t) < 0.25$}
+            \State Increase the scale parameter to $\lambda(t) = 4\lambda(t)$
+        \EndIf
+
+        \If {$the$ $steepest$ $descent$ $direction$ \textbf{r}$(t) \neq 0$}
+            \State Set $t = t+1$ and go to label A
+        \Else
+            \State Terminate and return \textbf{w}$(t+1)$ as the desired minimum
+        \EndIf
+    \end{algorithmic}
+\end{algorithm}
+
+In the context of Algorithm \ref{alg:SCG_algorithm}, the number of weights within the \acrshort{ffnn} model is
+denoted as $n_w$ and \textbf{w}$(t)$ is the weight vector of the \acrshort{ffnn}, that includes both of the
+hidden and output layer weights. Additionally, Algorithm \ref{alg:SCG_algorithm} computes the step sizes automatically and
+restarts with a different search direction after $n_w$ consecutive epochs if no reduction in error is achieved.
+
+$\mathcal{E}'(\text{\textbf{w}}(t))$ is the gradient of the objective function $\mathcal{E}$ with respect to each weight for each
+pattern at epoch $t$, and it is a vector that contains all of the error signals, $\delta_{o_{k,p}}$ and $\delta_{y_{j,p}}$. Here,
+$\delta_{o_{k,p}}$ is calculated as shown in Equation \ref{eq: sigmoid_error_signal}, Equation \ref{eq: softmax_error_signal}
+or, Equation \ref{eq: mse_error_signal} if the output layer activation function is the sigmoid, softmax, or linear activation
+function, respectively and $\delta_{y_{j,p}}$ is calculated as shown in Equation \ref{eq: relu_error_signal}.
+
+The detailed steps of Algorithm \ref{alg:SCG_algorithm} is outlined below:
+
+\begin{itemize}
+    \item Calculation of second-order information:
+    \begin{equation}
+        \sigma(t) = \frac{\sigma}{\| \text{\textbf{p}}(t) \|} \label{eq: sigma_t_second_order}
+    \end{equation}
+    where $\sigma(t)$ is the second-order information at epoch $t$, \textbf{p}$(t)$ is the search direction vector
+    at epoch $t$ and $\| \text{\textbf{p}}(t) \|$ is the euclidean norm of vector \textbf{p}$(t)$.
+    
+    \begin{equation}
+        \text{\textbf{s}}(t) = \frac{\mathcal{E}'(\text{\textbf{w}}(t) + \sigma(t)\text{\textbf{p}}(t)) - \mathcal{E}'(\text{\textbf{w}}(t))}{\sigma(t)} \label{eq: s_t_second_order}
+    \end{equation}
+    where \textbf{s}$(t)$ is the approximation of the Hessian-vector product.
+    
+    \begin{equation}
+        \delta(t) = \text{\textbf{p}}(t)^T \text{\textbf{s}}(t) \label{eq: delta_t_second_order}
+    \end{equation}
+    where $\text{\textbf{p}}(t)^T$ is the transpose of vector $\text{\textbf{p}}(t)$.
+    
+    \item Perform scaling:
+    \begin{equation}
+        \text{\textbf{s}}(t) = \text{\textbf{s}}(t) + (\lambda(t) - \bar{\lambda}(t))\text{\textbf{p}}(t) \label{eq: scale_s}
+    \end{equation}
+    
+    \begin{equation}
+        \delta(t) = \delta(t) + (\lambda(t) - \bar{\lambda}(t)) \| \text{\textbf{p}}(t)^2 \| \label{eq: scale_delta}
+    \end{equation}
+
+    \item Make the Hessian matrix positive definite:
+    \begin{equation}
+        \text{\textbf{s}}(t) = \text{\textbf{s}}(t) + \left( \lambda(t) - 2 \frac{\delta(t)}{\| \text{\textbf{p}}(t) \|^2} \right) \text{\textbf{p}}(t) \label{eq: hessian_s}
+    \end{equation}
+
+    \begin{equation}
+        \bar{\lambda}(t) = 2 \left( \lambda(t) - 2 \frac{\delta(t)}{\| \text{\textbf{p}}(t) \|^2} \right) \label{eq: hessian_lambda_bar}
+    \end{equation}
+
+    \begin{equation}
+        \delta(t) = -\delta(t) + \lambda(t) \| \text{\textbf{p}}(t) \|^2 \label{eq: hessian_delta}
+    \end{equation}
+
+    \begin{equation}
+        \lambda(t) = \bar{\lambda}(t) \label{eq: hessian_lambda}
+    \end{equation}
+
+    \item Calculate the step size:
+
+    \begin{equation}
+        \mu(t) = \text{\textbf{p}}(t)^T \text{\textbf{r}}(t) \label{eq: step_size_mu}
+    \end{equation}
+    where \textbf{r}$(t)$ is the negative gradient vector at epoch $t$.
+
+    \begin{equation}
+        \eta(t) = \frac{\mu(t)}{\delta(t)} \label{eq: step_size_eta}
+    \end{equation}
+    where $\eta(t)$ is the step size at epoch $t$.
+
+    \item Calculate the comparison parameter:
+
+    \begin{equation}
+        \Delta(t) = \frac{2 \delta(t)[\mathcal{E}(\text{\textbf{w}}(t)) - \mathcal{E}(\text{\textbf{w}}(t) + \eta(t)\text{\textbf{p}}(t))]}{\mu(t)^2} \label{eq: comparison_parameter}
+    \end{equation}
+    where $\Delta(t)$ is the comparison parameter.
+
+    \item Adjust the weights:
+    \begin{equation}
+        \text{\textbf{w}}(t+1) = \text{\textbf{w}}(t) + \eta(t)\text{\textbf{p}}(t) \label{eq: adjust_weights_w}
+    \end{equation}
+
+    \begin{equation}
+        \text{\textbf{r}}(t+1) = -\mathcal{E}'(\text{\textbf{w}}(t+1))
+    \end{equation}
+
+    \item Create a new conjugate direction:
+    \begin{equation}
+        \beta(t) = \frac{\| \text{\textbf{r}}(t+1) \|^2 - \text{\textbf{r}}(t+1)^T \text{\textbf{r}}(t)}{\mu(t)} \label{eq: conjugate_direction_beta}
+    \end{equation}
+
+    \begin{equation}
+        \text{\textbf{p}}(t+1) = \text{\textbf{r}}(t+1) + \beta(t)\text{\textbf{p}}(t) \label{eq: p_values_update}
+    \end{equation}
+\end{itemize}
+
+\subsection{Leap Frog} \label{section: LF_background}
+
+The \acrshort{lfop} algorithm, introduced by Jan Snyman in 1982, is a dynamic optimisation algorithm designed to address
+unconstrained minimisation problems \cite{leapfrog_ref}. The \acrshort{lfop} algorithm employs a dynamic and adaptive
+approach that could efficiently search for the global minimum and not be constrained by the typical challenges posed by
+local minima. The \acrshort{lfop} algorithm is explained in Algorithm \ref{alg:LeapFrog_algorithm}.
+
+\begin{algorithm}[h!]
+    \caption{Leap Frog}
+    \label{alg:LeapFrog_algorithm}
+    \begin{algorithmic}[1]
+        \State Create a random initial solution \textbf{w}$(0)$, and let $t = -1$
+        \State Let $\Delta t = 0.5, \delta = 1, m = 3, \delta_1 = 0.001, \epsilon = 10^{-5}, i = 0, j = 2, s = 0, p = 1$
+        \State Compute the initial acceleration \textbf{a}$(0) = -\mathcal{E}'(\text{\textbf{w}}(0))$ and velocity
+                \textbf{v}$(0) = \frac{1}{2}\text{\textbf{a}}(0)\Delta t$
+        \Repeat
+            \State $t = t + 1$
+            \State Compute $\| \Delta \text{\textbf{w}}(t) \| = \|\text{\textbf{v}}(t) \| \Delta t$
+            \If {$\| \Delta \text{\textbf{w}}(t) \| < \delta$}
+                \State $p = p + \delta_1, \Delta t = p \Delta t$
+            \Else
+                \State \textbf{v}$(t) = \delta \text{\textbf{v}}(t)/(\Delta t \| \text{\textbf{v}}(t) \|)$
+            \EndIf
+
+            \If {$s \geq m$}
+                \State $\Delta t = \Delta t / 2, s = 0$
+                \State \textbf{w}$(t) = (\text{\textbf{w}}(t) + \text{\textbf{w}}(t-1))/2$
+                \State $\text{\textbf{v}}(t) = (\text{\textbf{v}}(t) + \text{\textbf{v}}(t-1))/4$
+            \EndIf
+            \State $\text{\textbf{w}}(t+1) = \text{\textbf{w}}(t) + \text{\textbf{v}}(t) \Delta t$
+            \Repeat
+                \State $\text{\textbf{a}}(t+1) = -\mathcal{E}'(\text{\textbf{w}}(t+1))$
+                \State $\text{\textbf{v}}(t+1) = \text{\textbf{v}}(t) + \text{\textbf{a}}(t+1) \Delta t$
+                \If {$\text{\textbf{a}}^T(t+1)\text{\textbf{a}}(t) > 0$}
+                    \State $s = 0$
+                \Else
+                    \State $s = s + 1, p = 1$
+                \EndIf
+
+                \If {$\| \text{\textbf{a}}(t+1) \| > \epsilon$}
+                    \If {$\| \text{\textbf{v}}(t+1) \| > \| \text{\textbf{v}}(t) \|$}
+                        \State $i = 0$
+                    \Else
+                        \State $\text{\textbf{w}}(t+2) = (\text{\textbf{w}}(t+1) + \text{\textbf{w}}(t))/2$
+                        \State $i = i + 1$
+                        \State Perform a restart: \textbf{if} $i \leq j$ \textbf{then}
+                        \State \quad $\text{\textbf{v}}(t+1) = (\text{\textbf{v}}(t+1) + \text{\textbf{v}}(t))/4$
+                        \State \quad $t = t + 1$
+                        \State \textbf{else}
+                        \State \quad $\text{\textbf{v}}(t+1) = 0, j = 1, t = t + 1$
+                        \State \textbf{end if}
+                    \EndIf
+                \EndIf
+            \Until {$\| \text{\textbf{v}}(t+1)\| > \| \text{\textbf{v}}(t) \|$}
+        \Until {$\| \text{\textbf{a}}(t+1) \| \leq \epsilon$}
+        \State Return \textbf{w}$(t)$ as the solution
+    \end{algorithmic}
+\end{algorithm}
+
+\subsection{Performance Metrics} \label{section: Perf_Metrics_background}
+
+Performance metrics serve as essential tools for the evaluation of the effectiveness of classification
+and function approximation models. Performance metrics provide a quantitative measure of how reliably and
+accuratly a prediction model performs on a given task. Key metrics include accuracy and the \acrshort{mse}
+\cite{performance_metrics_ref}.
+
+\subsubsection{Accurcay}
+
+Accuracy is a common method used to evaluate the performance of classification models. The accuracy of
+a predictive classification model is determined by the proportion of correctly predicted labels
+against the total number of predictions. The calculation of the accuracy of a predictive model is
+as follows:
+\begin{equation}
+    \text{Accuracy} = \frac{\text{Number of Correct Predictions}}{\text{Total Number of Predictions}} \label{eq: accuracy}
+\end{equation}
+Accuracy is a popular choice of performance measure mainly beacause it is fairly easy to understand and
+compute and generally performs well on well balanced datasets.
+
+\subsubsection{Mean Squared Error}
+
+The \acrshort{mse} is commonly used as a performance metric in function approximation tasks. The \acrshort{mse}
+quantifies the average squared difference between predicted and actual values, that provides insights into
+model accuracy \cite{mse_ref}. Additionally, the \acrshort{mse} effectively identifies larger errors, which
+is crucial for \acrshort{ffnn} models due to their sensitivity to outliers.
+The calculation of the \acrshort{mse} for the \acrshort{ffnn} model is performed by use of
+Equation \ref{eq: mse_objective_function}.
+
+\subsection{Weight Decay} \label{section: Weight_Decay_background}
+
+John Hertz and Anders Krogh published a paper in 1991, that explains why weight decay improves the generalisation
+in a \acrshort{ffnn} \cite{weight_decay_ref}. Hertz and Krogh proved that the addition of weight decay suppresses
+any irrelevant components of the weight vector by selecting the smallest vector that solves the learning problem.
+Weight decay also reduces the effects of static noise on the targets, which improves generalisation quite a lot.
+
+Weight decay prevents large weights and is implemented by the addition of a penalty term to the objective function
+that penalises large weights. The mathematical equation of the addition of weight decay is represented by the
+equation below:
+\begin{equation}
+    \mathcal{E}(\text{\textbf{w}}) = \mathcal{E}_T(\text{\textbf{w}}) + \frac{1}{2} \lambda \sum_{i=1}^{n_w}w_i^2 \label{eq: weight_decay}
+\end{equation}
+where $\mathcal{E}_T(\text{\textbf{w}})$ is calculated as shown in Equation \ref{eq: bce_objective_function},
+Equation \ref{eq: cce_objective_function} or Equation \ref{eq: mse_objective_function}, if the output layer
+activation function is the sigmoid, softmax or linear activation function, respectively with respect to
+the weights \textbf{w} and $\lambda$ is a parameter that determines the strength of the penalty on large weights.
+
+Weight decay also has to be taken into consideration in the backpropagation step when the gradient of the \acrshort{ffnn}
+objective function is calculated. The equation used to incorporate the weight decay in the backpropagation of the
+\acrshort{ffnn} model is as follows:
+\begin{equation}
+    \mathcal{E}'(\text{\textbf{w}}) = -\mathcal{E}_T'(\text{\textbf{w}}) - \lambda \text{\textbf{w}} \label{eq: weight_decay_gradient}
+\end{equation}
+
+\section{Implementation} \label{section: Implementation}
+
+This section provides the approach taken to implement a \acrshort{ffnn} model with one hidden layer, as well as the integration
+of the \acrshort{sgd}, \acrshort{scg}, and \acrshort{lfop} optimisation algorithms, for both classification and function
+approximation tasks.
+
+\subsection{Feed Forward Neural Network Architecture}
+
+Each \acrshort{ffnn} model is implemented as outlined in Section \ref{section: FFNN_background}. The architecture
+consists of an input layer, a single hidden layer, and an output layer.
+
+The \acrshort{relu} activation function is employed as the activation function in the hidden layer. Additionally,
+the output layer employs different activation functions based on the task:
+\begin{itemize}
+    \item The sigmoid activation function for binary classification tasks.
+    \item The softmax activation function for multi-class classification tasks.
+    \item The linear activation function for function approximation tasks.
+\end{itemize}
+These activation functions are implemented as described in Section \ref{section: Act_Func_background}.
+
+The objective function used by the \acrshort{ffnn} model depends on the activation function employed in the
+output layer:
+\begin{itemize}
+    \item The binary cross-entropy when the sigmoid activation function is employed.
+    \item The categorical cross-entropy when the softmax activation function is employed.
+    \item The \acrshort{mse} when the linear activation function is employed.
+\end{itemize}
+These objective functions are implemented as described in Section \ref{section: Obj_Func_background}.
+
+Each \acrshort{ffnn} model implements early stopping. The model stops if the maximum number of epochs is
+exceeded, when the average weight change is less than $10^{-6}$, and when overfitting is detected. The model
+is deemed to overfit when the validation error increases, while the training error decreases. The equation used
+to ensure that the model does not stop immediatly when the validation error increases, as it might decrease on
+the next epoch, is as follows:
+\begin{equation}
+    \mathcal{E}_v > \bar{\mathcal{E}}_v + \sigma_{\mathcal{E}_v} \label{eq: early_stopping}
+\end{equation}
+where $\mathcal{E}_v$ is the moving average of the validation error calculated on each new epoch, and
+$\sigma_{\mathcal{E}_v}$ is the standard deviation of the validation errors. If any of these early
+stopping techniques is triggered, the weight vectors are restored to where the validation error
+was best.
+
+Weight decay is also implemented in each \acrshort{ffnn}, as described in Section \ref{section: Weight_Decay_background},
+to remove irrelevant and redundant weights.
+
+The weights of the \acrshort{ffnn} model are sampled from a uniform distribution function to initialise
+all weights from the input to the hidden layer and all weights from the hidden to the output layer.
+The equation used to sample the initial weights from a uniform distribution is as follows:
+\begin{equation}
+    w_{kj}, v_{ji} \sim Uniform \left( \frac{-1}{\sqrt{fanin}}, \frac{1}{\sqrt{fanin}} \right)
+\end{equation}
+where $fanin$ is the number of connections that leads into the neuron. Therefore, $fanin$ would be
+$I+1$ when $v_{ji}$ is initialised and $J+1$ when $w_{kj}$ is initialised.
+
+\subsection{Stochastic Gradient Descent Optimisation Algorithm}
+
+The \acrshort{sgd} optimisation algorithm is implemented as described in Algorithm \ref{alg:SGD_algorithm}.
+Additionally, Equations \ref{eq: v_weights_update}-\ref{eq: delta_w} is utilised to further refine
+the implementation of the \acrshort{sgd} algorithm.
+
+\subsection{Scaled Conjugate Gradient Optimisation Algorithm}
+
+The \acrshort{scg} optimisation algorithm is implemented as described in Algorithm \ref{alg:SCG_algorithm}.
+Furthermore, Equations \ref{eq: sigma_t_second_order}-\ref{eq: p_values_update} is incorporated
+to enhance the implementation of the \acrshort{scg} optimisation algorithm.
+
+\subsection{Leap Frog Optimisation Algorithm}
+
+The \acrshort{lfop} algorithm is implemented as described in Algorithm \ref{alg:LeapFrog_algorithm}. Additionally,
+a process of mini-batch learning is used to improve the efficiency and stability of the model. This approach
+divides the training dataset into smaller subsets, known as mini-batches, and allows the model to update its
+weights more frequently, which often leads to faster convergence and improved performance on larger datasets.
+The implementation of the \acrshort{lfop} algorithm with the use of mini-batch learning is provided in Algorithm
+\ref{alg:LeapFrog_improved_algorithm}.
+
+\begin{algorithm}[H]
+    \caption{Leap Frog}
+    \label{alg:LeapFrog_improved_algorithm}
+    \begin{algorithmic}[1]
+        \State Create a random initial solution \textbf{w}$(0)$, let $t = -1$, and initialise the number of batches $n_b \geq 1$
+        \State Let $\Delta t = 0.5, \delta = 1, m = 3, \delta_1 = 0.001, \epsilon = 10^{-5}, i = 0, j = 2, s = 0, p = 1$
+        \State Compute the initial acceleration \textbf{a}$(0) = -\mathcal{E}'(\text{\textbf{w}}(0))$ and velocity
+                \textbf{v}$(0) = \frac{1}{2}\text{\textbf{a}}(0)\Delta t$
+        \Repeat
+            \State $t = t + 1$
+            \State Compute $\| \Delta \text{\textbf{w}}(t) \| = \|\text{\textbf{v}}(t) \| \Delta t$
+            \If {$\| \Delta \text{\textbf{w}}(t) \| < \delta$}
+                \State $p = p + \delta_1, \Delta t = p \Delta t$
+            \Else
+                \State \textbf{v}$(t) = \delta \text{\textbf{v}}(t)/(\Delta t \| \text{\textbf{v}}(t) \|)$
+            \EndIf
+
+            \If {$s \geq m$}
+                \State $\Delta t = \Delta t / 2, s = 0$
+                \State \textbf{w}$(t) = (\text{\textbf{w}}(t) + \text{\textbf{w}}(t-1))/2$
+                \State $\text{\textbf{v}}(t) = (\text{\textbf{v}}(t) + \text{\textbf{v}}(t-1))/4$
+            \EndIf
+            \State $\text{\textbf{w}}(t+1) = \text{\textbf{w}}(t) + \text{\textbf{v}}(t) \Delta t$
+            \Repeat
+                \State Divide the dataset into $n_b$ batches
+                \State Initialise an empty list batch\_gradients
+                \For{each batch}
+                    \State Compute gradient for the batch: $\mathcal{E}'_{\text{batch}}(\text{\textbf{w}}(t+1))$
+                    \State Append the batch gradient to batch\_gradients
+                \EndFor
+                \State Compute the mean gradient: $\overline{\mathcal{E}'}(\text{\textbf{w}}(t+1)) = \frac{1}{n_b}\sum_{\text{batch}} \mathcal{E}'_{\text{batch}}(\text{\textbf{w}}(t+1))$
+                \State $\text{\textbf{a}}(t+1) = -\overline{\mathcal{E}'}(\text{\textbf{w}}(t+1))$
+                \State $\text{\textbf{v}}(t+1) = \text{\textbf{v}}(t) + \text{\textbf{a}}(t+1) \Delta t$
+                \If {$\text{\textbf{a}}^T(t+1)\text{\textbf{a}}(t) > 0$}
+                    \State $s = 0$
+                \Else
+                    \State $s = s + 1, p = 1$
+                \EndIf
+
+                \If {$\| \text{\textbf{a}}(t+1) \| > \epsilon$}
+                    \If {$\| \text{\textbf{v}}(t+1) \| > \| \text{\textbf{v}}(t) \|$}
+                        \State $i = 0$
+                    \Else
+                        \State $\text{\textbf{w}}(t+2) = (\text{\textbf{w}}(t+1) + \text{\textbf{w}}(t))/2$
+                        \State $i = i + 1$
+                        \State Perform a restart: \textbf{if} $i \leq j$ \textbf{then}
+                        \State \quad $\text{\textbf{v}}(t+1) = (\text{\textbf{v}}(t+1) + \text{\textbf{v}}(t))/4$
+                        \State \quad $t = t + 1$
+                        \State \textbf{else}
+                        \State \quad $\text{\textbf{v}}(t+1) = 0, j = 1, t = t + 1$
+                        \State \textbf{end if}
+                    \EndIf
+                \EndIf
+            \Until {$\| \text{\textbf{v}}(t+1)\| > \| \text{\textbf{v}}(t) \|$}
+        \Until {$\| \text{\textbf{a}}(t+1) \| \leq \epsilon$}
+        \State Return \textbf{w}$(t)$ as the solution
+    \end{algorithmic}
+\end{algorithm}
+
+\section{Empirical Procedure} \label{section: Empeirical Procedure}
+
+This section of the report outlines the systematic approach used to evaluate the performance of the \acrshort{ffnn}
+model that employs the \acrshort{sgd}, \acrshort{scg}, and \acrshort{lfop} optimisation algorithms across
+multiple classification and function approximation tasks. Additionally, this section provides the approach used to
+process each dataset to ensure optimal performance of the \acrshort{ffnn} model. The section provides the performance
+metrics used to compare the performance of the optimisation algorithms, the control parameters used to construct
+each \acrshort{ffnn} model for each of the classification and function approximation tasks, the experimental setup
+and the statistical significance tests used to ensure the reliability and statistical soundness of the results.
+
+\subsection{Performance Metrics}
+
+Accuracy is utilised to evaluate and compare the performance of each \acrshort{ffnn} model across all three
+classification tasks, which should be maximised. Additionally, all three function approximation tasks are evaluated and compared
+by the use of the \acrshort{mse}, which should minimised. The time taken for each model construction, measured in seconds,
+is also considered for comparison.
+
+\subsection{Data Preprocessing}
+
+To ensure optimal and reliable results on each dataset from each \acrshort{ffnn} model, the data has to be pre-processed.
+The preprocessing procedures differ between each dataset, and therefore must each dataset be explored separately and
+processed into an optimal form to use in the \acrshort{ffnn} model.
+
+\subsubsection{Breast Cancer Dataset}
+
+The breast cancer dataset contains numerical features computed from a digitised image
+of a \acrfull{fna} of a breast mass, that describe characteristics of the cell nuclei present in the image.
+The dataset includes a binary target feature labeled `diagnosis,' which indicates whether the tumor is
+benign or malignant, denoted by `B' or `M', respectively. In total, the dataset consists of 33 features
+and 569 observations.
+
+The dataset contains a unique identification feature `id' and an unknown feature `Unnamed: 32' that is removed from
+the dataset, as it does not provide meaningful infomation. There are no missing values or outliers in the dataset.
+However, the classes are unbalanced, therefore the data is resampled by use of the \acrfull{smote} to ensure
+balanced classes.
+
+All of the features that remain are numerical and are scaled to have a mean of zero and a standard deviation of one
+to ensure optimal performance of the \acrshort{ffnn} model. The equation used to scale the data is as follows:
+\begin{equation}
+    Z_{i,j} = \frac{x_{i,j} - \mu_j}{\sigma_j} \label{eq: standardise}
+\end{equation}
+where $x_{i,j}$ is the data value of the $j$-th feature for the $i$-th observation, $\mu_j$ and $\sigma_j$ is the
+mean and standard deviation of the $j$-th feature across all observations, respectively, and $Z_{i,j}$
+is the standardised data value of the data value at the $i$-th observation and the $j$-th feature.
+
+The \acrfull{pca} technique is employed to reduce the dimensionality of the dataset. The first 10 principle
+components captures 95.28\% of the cumulative explained variance as shown in Figure
+\ref{fig:cumulative-variance-breast-cancer} and Figure \ref{fig:individual-variance-breast-cancer}
+shows that from principal component six and onwards captures less than 5\% varaince each.
+
+\begin{figure}[H]
+    \centering
+    \subfloat[Cumulative Explained Variance by PCA Components]{%
+        \includegraphics[width=0.23\textwidth]{../Images/PCA_cumulative_variance_breast_cancer.PNG}%
+        \label{fig:cumulative-variance-breast-cancer}
+    }
+    \hfil
+    \subfloat[Explained Variance by Each Principal Component]{%
+        \includegraphics[width=0.23\textwidth]{../Images/PCA_explained_variance_breast_cancer.PNG}%
+        \label{fig:individual-variance-breast-cancer}
+    }
+    \caption{Principal Component Analysis (PCA) Variance Explanation of the breast cancer dataset}
+    \label{fig:pca-variance}
+\end{figure}
+The first 10 principal components are chosen as the features, which decreases the number of features from 30 to
+10.
+
+The target feature `diagnosis' is encoded so that each instance of `M' is represented as a zero and each instance
+of `B' is represented as one. Additionally, the sigmoid activation function is employed in the output layer.
+
+\subsubsection{Body Performance Dataset}
+
+The body performance dataset contains various fitness and health metrics collected from individuals.
+The target feature, `class', categorises individuals into one of four classes: A, B, C or D. The individuals
+in class A are deemed to be the fittest. In total, the dataset consists of 12 features and 13393 observations.
+
+There are no unique features or missing values in the dataset and the classes are all balanced.
+There is a categorical feature, `gender', in the body performance dataset, that contains an `M' to indicate
+male and a `F' to indicate female. This categorical feature is encoded so that each instance of a `M'
+is represented by zero and each insatnce of a `F' is represented by one. The remainder of the features
+are continuous features, so each continuous feature should be scaled by use of Equation \ref{eq: standardise}.
+
+The \acrshort{pca} technique is utilised to reduce the dimensions of the dataset. The first eight principle
+components captures 96.91\% of the cumulative explained variance as shown in Figure
+\ref{fig:cumulative-variance-body-performance} and Figure \ref{fig:individual-variance-body-performance}
+shows that from principal component six and onwards captures less than 5\% varaince each.
+
+\begin{figure}[H]
+    \centering
+    \subfloat[Cumulative Explained Variance by PCA Components]{%
+        \includegraphics[width=0.23\textwidth]{../Images/PCA_cumulative_variance_body_performance.PNG}%
+        \label{fig:cumulative-variance-body-performance}
+    }
+    \hfil
+    \subfloat[Explained Variance by Each Principal Component]{%
+        \includegraphics[width=0.23\textwidth]{../Images/PCA_explained_variance_body_performance.PNG}%
+        \label{fig:individual-variance-body-performance}
+    }
+    \caption{Principal Component Analysis (PCA) Variance Explanation of the body performance dataset}
+    \label{fig:pca-variance-body-performance}
+\end{figure}
+The first eight principal components are chosen as the features, which decreases the number of features from 11 to
+eight.
+
+The target feature is one-hot encoded, which converts each class label into a binary vector representation.
+Additionally, the softmax activation function is employed in the output layer.
+
+\subsubsection{Fashion MNIST Dataset}
+
+The fashion MNIST dataset is a collection of grayscale images, where each image has 28 pixels in height and 28 pixels in width.
+The pixel values are integers between zero and 255, with each pixel associated with one pixel value. A higher value
+indicates a lighter pixel. In total, the dataset consists of 784 features and 70000 observations, where the 28$\times$28
+pixels are flattened to create a vetor of pixels, that results in 784 features.
+
+The fashion MNIST dataset includes 10 different clothes categories. These categories are: `T-shirt/top',
+`Trouser', `Pullover', `Dress', `Coat', `Sandal', `Shirt', `Sneaker', `Bag', and `Ankle boot'.
+
+There are no missing values or imbalanced classes. However, the data is scaled by dividing each pixel value
+by 255 to obtain values between zero and one. The target feature is one-hot encoded, which converts each class
+label into a binary vector representation. Additionally, the softmax activation function is employed in the output
+layer.
+
+\subsubsection{Linear function}
+
+The first function to be approximated is a linear function represented by the equation below:
+\begin{equation}
+    y = -1.2x + 4.2 + err \label{eq: first_approximation}
+\end{equation}
+where $y$ is the function to approximate, $x$ is a random value generated from a uniform distribution
+between -10 and 10, that is $x \sim Uniform(-10,10)$ and $e$ is an error generated from a normal
+distribution with a mean of zero and a standard deviation of 0.5, that is $err \sim Normal(0,0.5)$.
+Additionally, the linear activation function is employed in the output layer.
+The introduction of $err$ adds noise to the generated data to prevent the \acrshort{ffnn} models
+from overfitting the training data. Both $x$ and $y$ are then scaled by use of Equation \ref{eq: standardise}.
+
+The scaled linear function can be seen in Figure \ref{fig:linear_function_scaled}, while the scaled linear
+function with added error to introduce noise is displayed in Figure \ref{fig:linear_function_error}.
+\begin{figure}[H]
+    \centering
+    \subfloat[Scaled linear function]{%
+        \includegraphics[width=0.23\textwidth]{../Images/Linear_func.PNG}%
+        \label{fig:linear_function_scaled}
+    }
+    \hfil
+    \subfloat[Scaled linear function with error]{%
+        \includegraphics[width=0.23\textwidth]{../Images/Linear_func_error.PNG}%
+        \label{fig:linear_function_error}
+    }
+    \caption{Linear function to approximate}
+    \label{fig:linear_function}
+\end{figure}
+
+\subsubsection{Cubic function}
+
+The second function to be approximated is a cubic function represented by the equation below:
+\begin{equation}
+    y = 2x^3 + 4x^2 - x + 1 + err \label{eq: second_approximation}
+\end{equation}
+where $x \sim Uniform(-5,5)$ and $err \sim Normal(0,1)$. Both $x$ and $y$ are then scaled by use
+of Equation \ref{eq: standardise}. Additionally, the linear activation function is employed in
+the output layer.
+
+The scaled cubic function can be seen in Figure \ref{fig:cubic_function_scaled}, while the scaled cubic
+function with added error to introduce noise is displayed in Figure \ref{fig:cubic_function_error}.
+\begin{figure}[H]
+    \centering
+    \subfloat[Scaled cubic function]{%
+        \includegraphics[width=0.23\textwidth]{../Images/Cubic_func.PNG}%
+        \label{fig:cubic_function_scaled}
+    }
+    \hfil
+    \subfloat[Scaled cubic function with error]{%
+        \includegraphics[width=0.23\textwidth]{../Images/Cubic_func_error.PNG}%
+        \label{fig:cubic_function_error}
+    }
+    \caption{Cubic function to approximate}
+    \label{fig:cubic_function}
+\end{figure}
+
+\subsubsection{Logistic function}
+
+The final function to be approximated is a logistic function represented by the equation below:
+\begin{equation}
+    y = \frac{1}{1+e^{-sin(x)+cos(2x)}} + err \label{eq: third_approximation}
+\end{equation}
+where $x \sim Uniform(-5,5)$ and $err \sim Normal(0,0.03)$. Both $x$ and $y$ are then scaled by use
+of Equation \ref{eq: standardise}. Additionally, the linear activation function is employed in the
+output layer.
+
+The scaled logistic function can be seen in Figure \ref{fig:log_function_scaled}, while the scaled logistic
+function with added error to introduce noise is displayed in Figure \ref{fig:log_function_error}.
+\begin{figure}[H]
+    \centering
+    \subfloat[Scaled Logistic function]{%
+        \includegraphics[width=0.23\textwidth]{../Images/Logistic_func.PNG}%
+        \label{fig:log_function_scaled}
+    }
+    \hfil
+    \subfloat[Scaled Logistic function with error]{%
+        \includegraphics[width=0.23\textwidth]{../Images/Logistic_func_error.PNG}%
+        \label{fig:log_function_error}
+    }
+    \caption{Logistic function to approximate}
+    \label{fig:log_function}
+\end{figure}
+
+\subsection{Experimental Setup} \label{section: experimental_setup_emp}
+
+\subsubsection{Comparison of optimisation algorithms}
+A 10-fold cross validation was used to evaluate the performance of each optimisation algorithm
+for both classification and function approximation tasks. For the classification tasks, the cross validation
+splits the data up into 10 datasets, where eight sets were used to construct the model, one set was used as the
+validation set and one set was used as the test set. This process was repeated 10 times to ensure each subset is
+used as the validation set once. The utilisation of the 10-fold cross validation technique ensured that the
+evaluation was fair and consistent across the entire dataset and the bias that might arise from relying
+on a single training-test split was reduced.
+
+A 10-fold cross validation was used to evaluate the performance of each optimisation algorithm
+for each function approximation task. Each fold generated 10000 instances used to construct
+each model, 2000 instances used as the validation set, and 2000 instances used as the test set.
+A random seed is initialised to ensure reproducibility of each generated dataset.
+
+\subsubsection{Finding the optimal control parameters}
+To find the optimal control parameters of each optimisation algorithm for each task, a 5-fold
+cross validation was used, as described above, for both the classification and function approximation
+tasks. A Bayesian optimisation technique efficiently searched the hyperparameter space
+to identify the parameters that minimised the average test accuracy error for classification tasks and the
+average \acrshort{mse} for function approximation tasks across the 5-fold cross validation.
+
+\subsection{Control Parameters} \label{section: control_parameters}
+
+Bayesian optimisation is used to find the optimal control parameter for each classification and
+function approximation tasks, as described in Section \ref{section: experimental_setup_emp}.
+The optimal control parameters used for each \acrshort{sgd} optimisation algorithm in both
+classification and function approximation tasks are represented in Table
+\ref{table: SGD_control_parameters}.
+
+\begin{table*}[h!]
+    \caption{Stochastic Gradient Descent Control Parameters}
+    \begin{center}
+        \begin{tabular}{|c||c|c|c|c|c|c|}
+            \hline
+            \textbf{Dataset}&\multicolumn{6}{|c|}{\textbf{Control Parameters}} \\
+            % \textbf{Max depth}
+            \cline{2-7}
+                        & \textbf{\textit{eta}} & \textbf{\textit{alpha}} & \textbf{\textit{lambda}} & \textbf{\textit{epochs}} & \textbf{\textit{hidden units}} & \textbf{\textit{Bias}}\\
+            \hline
+            \textbf{\textit{Breast Cancer}}  & 0.09298 & 0.9662 & 0.0001 & 56 & 9 & -0.14345\\
+            \textbf{\textit{Body Performance}}  & 0.00142 & 0.46241 & 4.18$\times10^{-6}$ & 100 & 14 & 1\\
+            \textbf{\textit{Fashion MNIST}} & 0.00394 & 0.05615 & 2.31$\times10^{-5}$ & 15 & 104 & -0.04005\\
+            \textbf{\textit{Linear Function}} & 0.01 & 0 & 0.0001 & 100 & 237 & -1\\
+            \textbf{\textit{Cubic Function}} & 0.01 & 0.53969 & 0.0001 & 100 & 424 &-1\\
+            \textbf{\textit{Logistic Function}} & 0.00021 & 0.93863 & 0.0001 & 100 & 342 & -1\\
+            \hline
+        \end{tabular}
+    \end{center}
+    \label{table: SGD_control_parameters}
+\end{table*}
+
+The optimal control parameters used for each \acrshort{scg} optimisation algorithm in both
+classification and function approximation tasks are represented in Table
+\ref{table: SCG_control_parameters}.
+\begin{table*}[h!]
+    \caption{Scaled Conjugate Gradient Control Parameters}
+    \begin{center}
+        \begin{tabular}{|c||c|c|c|c|}
+            \hline
+            \textbf{Dataset}&\multicolumn{4}{|c|}{\textbf{Control Parameters}} \\
+            % \textbf{Max depth}
+            \cline{2-5}
+                        & \textbf{\textit{lambda}} & \textbf{\textit{epochs}} & \textbf{\textit{hidden units}} & \textbf{\textit{Bias}}\\
+            \hline
+            \textbf{\textit{Breast Cancer}}  & 0.0001 & 10000 & 8 & 0.70733\\
+            \textbf{\textit{Body Performance}}  & 3.91$\times10^{-6}$ & 4027 & 32 & -1\\
+            \textbf{\textit{Fashion MNIST}} & 9.2$\times10^{-5}$ & 420 & 86 & 0.29634\\
+            \textbf{\textit{Linear Function}} & 0.0001 & 1000 & 69 & 0.25951\\
+            \textbf{\textit{Cubic Function}} & 1$\times10^{-6}$ & 344 & 236 & 1\\
+            \textbf{\textit{Logistic Function}} & 1$\times10^{-6}$ & 473 & 454 & 0.95896\\
+            \hline
+        \end{tabular}
+    \end{center}
+    \label{table: SCG_control_parameters}
+\end{table*}
+
+The optimal control parameters used for each \acrshort{lfop} optimisation algorithm in both
+classification and function approximation tasks are represented in Table
+\ref{table: LF_control_parameters}.
+\begin{table*}[h!]
+    \caption{Leap Frog Optimisation Control Parameters}
+    \begin{center}
+        \begin{tabular}{|c||c|c|c|c|c|}
+            \hline
+            \textbf{Dataset}&\multicolumn{5}{|c|}{\textbf{Control Parameters}} \\
+            % \textbf{Max depth}
+            \cline{2-6}
+                        & \textbf{\textit{lambda}} & \textbf{\textit{epochs}} & \textbf{\textit{hidden units}} & \textbf{\textit{Batches}}& \textbf{\textit{Bias}}\\
+            \hline
+            \textbf{\textit{Breast Cancer}}  & 0.00801 & 4561 & 5 & 32 & -1\\
+            \textbf{\textit{Body Performance}}  & 8.22$\times10^{-5}$ & 2000 & 21 & 1 &-1\\
+            \textbf{\textit{Fashion MNIST}} & 0.00116 & 227 & 126 & 42 & 0.30628\\
+            \textbf{\textit{Linear Function}} & 0.0001 & 100 & 30 & 128 &-0.02609\\
+            \textbf{\textit{Cubic Function}} & 0.0001 & 100 & 363 & 128 &1\\
+            \textbf{\textit{Logistic Function}} & 0.0001 & 370 & 390 & 128 &0.94595\\
+            \hline
+        \end{tabular}
+    \end{center}
+    \label{table: LF_control_parameters}
+\end{table*}
+
+\subsection{Statistical Significance and Analysis}
+
+The statistical significance of the results from the comparison of optimisation algorithms
+is determined by the evaluation of the accuracy for the classification tasks and the \acrshort{mse}
+for the function approximation tasks, by the utilisation of a 10-fold cross validation. The
+Kruskal-Wallis test is employed to check for stochastic dominance among the samples, with a
+significance level of 0.05.
+
+\section{Research Results} \label{section: Research Results}
+
+This section presents an overview of the experimental results obtained by the \acrshort{ffnn} model that deploys the
+\acrshort{sgd}, \acrshort{scg}, and \acrshort{lfop} optimisation algorithms.
+
+\subsection{Breast Cancer Dataset}
+
+By use of Bayesian optimisation, the optimal values of the control parameters in the
+\acrshort{sgd}, \acrshort{sgd}, and \acrshort{lfop} optimisation algorithm are determined as seen in
+Section \ref{section: control_parameters}.
+
+A 10-fold cross validation technique is then applied to each of these \acrshort{ffnn} models to compare each
+optimisation algorithm with one another. Table \ref{table: BC_performance_metrics} presents the average
+and standard deviation of the performance metrics of the 10-fold cross validation for each optimisation algorithm.
+\begin{table}[H]
+    \caption{Performance Metrics of each Optimisation Algorithm Obtained from Classifying the Breast Cancer Dataset}
+    \begin{center}
+        \begin{tabular}{|c||c|c|c|c|}
+            \hline
+            \textbf{Algorithm}&\multicolumn{4}{|c|}{\textbf{Performance metrics}} \\
+            % \textbf{Max depth}
+            \cline{2-5}
+                        & \textbf{\textit{mean accuracy}} & \textbf{\textit{std accuracy}} & \textbf{\textit{mean time}} & \textbf{\textit{std time}}\\
+            \hline
+            \textbf{\textit{SGD}}  & 96.91 & 0.0485 & 2.0621 & 2.150\\
+            \textbf{\textit{SCG}}  & 97.47 & 0.0451 & 0.1211 & 0.075\\
+            \textbf{\textit{LFOP}} & 97.33 & 0.0408 & 1.6545 & 0.829\\
+            \hline
+        \end{tabular}
+    \end{center}
+    \label{table: BC_performance_metrics}
+\end{table}
+
+The accuracy scores obtained from each fold by each \acrshort{ffnn}
+model are presented in Figure \ref{fig:BC_comparison}.
+\begin{figure}[H]
+    \centerline{\includegraphics[scale=0.34]{../Images/BC_comparison.PNG}}
+    \caption{Comparison of accuracy for three optimisation algorithms when the Breast Cancer dataset is classified by use of 10-fold cross-validation.}
+    \label{fig:BC_comparison}
+\end{figure}
+The Kruskal-Wallis statistical test returned a p-value of $0.94$, which shows that
+there is no significant difference between the scores of each optimisation algorithm.
+However, the Kruskal-Wallis statistical test returned a p-value of $6.23\times10^{-5}$
+between the construction times of the \acrshort{ffnn} model, which shows a significant
+difference between the times of each optimisation algorithm. Figure \ref{fig:BC_time}
+presents the average time each model takes for construction across the 10-folds.
+\begin{figure}[H]
+    \centerline{\includegraphics[scale=0.29]{../Images/BC_time.PNG}}
+    \caption{Comparison of construction time for three optimisation algorithms when the Breast Cancer dataset is classified by use of 10-fold cross-validation.}
+    \label{fig:BC_time}
+\end{figure}
+
+The models are then constructed on the same data split. Figure \ref{fig:BC_errors} represents
+the training and validation errors over epochs for each optimization algorithm on this data split.
+\begin{figure}[H]
+    \centering
+    \begin{subfigure}[b]{0.23\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{../Images/BC_SGD_errors.PNG}
+        \caption{\acrshort{sgd}}
+        \label{fig:BC_SGD_errors}
+    \end{subfigure}
+    \hfill
+    \begin{subfigure}[b]{0.23\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{../Images/BC_SCG_errors.PNG}
+        \caption{\acrshort{scg}}
+        \label{fig:BC_SCG_errors}
+    \end{subfigure}
+    \begin{subfigure}[b]{0.23\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{../Images/BC_LF_errors.PNG}
+        \caption{\acrshort{lfop}}
+        \label{fig:BC_LF_errors}
+    \end{subfigure}
+    \caption{Training and validation errors over epochs for the Breast Cancer classification task of each optimisation algorithm}
+    \label{fig:BC_errors}
+\end{figure}
+Both the \acrshort{scg} and \acrshort{lfop} algorithms does not overfit the training data, as seen in Figure \ref{fig:BC_SCG_errors}
+and \ref{fig:BC_LF_errors}. However, the \acrshort{sgd} optimisation algorithm does overfit to the training data, where early
+stopping is then triggered due to a validation error that increases, which can be seen in Figure \ref{fig:BC_SGD_errors}.
+
+From this data split, the confusion matrices are produced to show the performance of each optimisation
+algorithm on the breast cancer dataset. These confusion matrices are presented in Figure \ref{fig:BC_Classification}.
+\begin{figure}[H]
+    \centering
+    \begin{subfigure}[b]{0.23\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{../Images/BC_SGD_Confusion.PNG}
+        \caption{\acrshort{sgd}}
+        \label{fig:BC_SGD_Classification}
+    \end{subfigure}
+    \hfill
+    \begin{subfigure}[b]{0.23\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{../Images/BC_SCG_Confusion.PNG}
+        \caption{\acrshort{scg}}
+        \label{fig:BC_SCG_Classification}
+    \end{subfigure}
+    \begin{subfigure}[b]{0.23\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{../Images/BC_LF_Confusion.PNG}
+        \caption{\acrshort{lfop}}
+        \label{fig:BC_LF_Classification}
+    \end{subfigure}
+    \caption{Confusion matrix of the breast cancer dataset for each optimization algorithm, with true labels on the y-axis and predicted labels on the x-axis.}
+    \label{fig:BC_Classification}
+\end{figure}
+
+After the examination of the results given above, it is deduced that the best optimisation algorithm
+to use on the breast cancer dataset is the \acrshort{scg} optimisation algorithm. Although the
+\acrshort{lfop} algorithm has a smaller deviation between accuracies, the \acrshort{scg}
+optimisation algorithm has a greater mean accuracy and constructs the \acrshort{ffnn} model
+the quickest. The confusion matrix in Figure \ref{fig:BC_SCG_Classification} also shows that
+the incorrect prediction of the test set is the prediction that the instance is malignant
+when the true label is benign. When the context is considered, an incorrect prediction of
+malignant is a much better outcome than an incorrect prediction of benign. Therefore, the best
+optimisation algorithm to use when the breast cancer dataset is classified with a \acrshort{ffnn}
+model, is the \acrshort{scg} optimisation algorithm. 
+
+\subsection{Body Performance Dataset}
+
+By use of Bayesian optimisation, the optimal values of the control parameters in the
+\acrshort{sgd}, \acrshort{sgd}, and \acrshort{lfop} optimisation algorithm are determined as seen in
+Section \ref{section: control_parameters}.
+
+A 10-fold cross validation technique is then applied to each of these \acrshort{ffnn} models to compare each
+optimisation algorithm with one another. Table \ref{table: BP_performance_metrics} presents the average
+and standard deviation of the performance metrics of the 10-fold cross validation for each optimisation algorithm.
+\begin{table}[H]
+    \caption{Performance Metrics of each Optimisation Algorithm Obtained from Classifying the Body Performance Dataset}
+    \begin{center}
+        \begin{tabular}{|c||c|c|c|c|}
+            \hline
+            \textbf{Algorithm}&\multicolumn{4}{|c|}{\textbf{Performance metrics}} \\
+            % \textbf{Max depth}
+            \cline{2-5}
+                        & \textbf{\textit{mean accuracy}} & \textbf{\textit{std accuracy}} & \textbf{\textit{mean time}} & \textbf{\textit{std time}}\\
+            \hline
+            \textbf{\textit{SGD}}  & 69.89 & 0.0145 & 263.192 & 6.709\\
+            \textbf{\textit{SCG}}  & 70.86 & 0.0096 & 231.208 & 120.219\\
+            \textbf{\textit{LFOP}} & 71.21 & 0.0143 & 35.172 & 13.186\\
+            \hline
+        \end{tabular}
+    \end{center}
+    \label{table: BP_performance_metrics}
+\end{table}
+
+The accuracy scores obtained from each fold by each \acrshort{ffnn}
+model are presented in Figure \ref{fig:BP_comparison}.
+\begin{figure}[H]
+    \centerline{\includegraphics[scale=0.34]{../Images/BP_comparison.PNG}}
+    \caption{Comparison of accuracy for three optimisation algorithms when the Body Performance dataset is classified by use of 10-fold cross-validation.}
+    \label{fig:BP_comparison}
+\end{figure}
+The Kruskal-Wallis statistical test returned a p-value of $0.184$, which shows that
+there is no significant difference between the scores of each optimisation algorithm.
+However, the Kruskal-Wallis statistical test returned a p-value of $0.00029$
+between the construction times of the \acrshort{ffnn} model, which shows a significant
+difference between the times of each optimisation algorithm. Figure \ref{fig:BP_time}
+presents the average time each model takes for construction across the 10-folds.
+\begin{figure}[H]
+    \centerline{\includegraphics[scale=0.29]{../Images/BP_time.PNG}}
+    \caption{Comparison of construction time for three optimisation algorithms when the Body Performance dataset is classified by use of 10-fold cross-validation.}
+    \label{fig:BP_time}
+\end{figure}
+
+The models are then constructed on the same data split. Figure \ref{fig:BP_errors} represents
+the training and validation errors over epochs for each optimization algorithm on this data split.
+\begin{figure}[H]
+    \centering
+    \begin{subfigure}[b]{0.23\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{../Images/BP_SGD_errors.PNG}
+        \caption{\acrshort{sgd}}
+        \label{fig:BP_SGD_errors}
+    \end{subfigure}
+    \hfill
+    \begin{subfigure}[b]{0.23\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{../Images/BP_SCG_errors.PNG}
+        \caption{\acrshort{scg}}
+        \label{fig:BP_SCG_errors}
+    \end{subfigure}
+    \begin{subfigure}[b]{0.23\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{../Images/BP_LF_errors.PNG}
+        \caption{\acrshort{lfop}}
+        \label{fig:BP_LF_errors}
+    \end{subfigure}
+    \caption{Training and validation errors over epochs for the Body Performance classification task of each optimisation algorithm}
+    \label{fig:BP_errors}
+\end{figure}
+Both the \acrshort{sgd} and \acrshort{lfop} algorithms does not overfit the training data, as seen in Figure \ref{fig:BP_SGD_errors}
+and \ref{fig:BP_LF_errors}. However, the \acrshort{scg} optimisation algorithm does overfit to the training data, where early
+stopping is then triggered due to a validation error that increases, which can be seen in Figure \ref{fig:BP_SCG_errors}.
+
+From this data split, the confusion matrices are produced to show the performance of each optimisation
+algorithm on the body performance dataset. These confusion matrices are presented in Figure \ref{fig:BP_Classification}.
+\begin{figure}[H]
+    \centering
+    \begin{subfigure}[b]{0.23\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{../Images/BP_SGD_Confusion.PNG}
+        \caption{\acrshort{sgd}}
+        \label{fig:BP_SGD_Classification}
+    \end{subfigure}
+    \hfill
+    \begin{subfigure}[b]{0.23\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{../Images/BP_SCG_Confusion.PNG}
+        \caption{\acrshort{scg}}
+        \label{fig:BP_SCG_Classification}
+    \end{subfigure}
+    \begin{subfigure}[b]{0.23\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{../Images/BP_LF_Confusion.PNG}
+        \caption{\acrshort{lfop}}
+        \label{fig:BP_LF_Classification}
+    \end{subfigure}
+    \caption{Confusion matrix of the body performance dataset for each optimization algorithm, with true labels on the y-axis and predicted labels on the x-axis.}
+    \label{fig:BP_Classification}
+\end{figure}
+
+After the examination of the results given above, it is deduced that the best optimisation algorithm
+to use on the body performance dataset is the \acrshort{lfop} optimisation algorithm. The \acrshort{lfop}
+algorithm converges the quickest and obtained the largest mean accuracy score. The \acrshort{ffnn} model
+also does not overfit on the training data when the \acrshort{lfop} algorithm is deployed,
+as shown by Figure \ref{fig:BP_LF_errors}.
+
+\subsection{Fashion MNIST Dataset}
+
+By use of Bayesian optimisation, the optimal values of the control parameters in the
+\acrshort{sgd}, \acrshort{sgd}, and \acrshort{lfop} optimisation algorithm are determined as seen in
+Section \ref{section: control_parameters}.
+
+A 10-fold cross validation technique is then applied to each of these \acrshort{ffnn} models to compare each
+optimisation algorithm with one another. Table \ref{table: FM_performance_metrics} presents the average
+and standard deviation of the performance metrics of the 10-fold cross validation for each optimisation algorithm.
+\begin{table}[H]
+    \caption{Performance Metrics of each Optimisation Algorithm Obtained from Classifying the Fashion MNIST Dataset}
+    \begin{center}
+        \begin{tabular}{|c||c|c|c|c|}
+            \hline
+            \textbf{Algorithm}&\multicolumn{4}{|c|}{\textbf{Performance metrics}} \\
+            % \textbf{Max depth}
+            \cline{2-5}
+                        & \textbf{\textit{mean accuracy}} & \textbf{\textit{std accuracy}} & \textbf{\textit{mean time}} & \textbf{\textit{std time}}\\
+            \hline
+            \textbf{\textit{SGD}}  & 88.12 & 0.005 & 4129.87 & 1306.38\\
+            \textbf{\textit{SCG}}  & 87.07 & 0.0064 & 6424.27 & 2932.92\\
+            \textbf{\textit{LFOP}} & 87.02 & 0.0033 & 1110.35 & 18.42\\
+            \hline
+        \end{tabular}
+    \end{center}
+    \label{table: FM_performance_metrics}
+\end{table}
+
+
+The accuracy scores obtained from each fold by each \acrshort{ffnn}
+model are presented in Figure \ref{fig:FM_comparison}.
+\begin{figure}[H]
+    \centerline{\includegraphics[scale=0.34]{../Images/FM_comparison.PNG}}
+    \caption{Comparison of accuracy for three optimisation algorithms when the Fashion MNIST dataset is classified by use of 10-fold cross-validation.}
+    \label{fig:FM_comparison}
+\end{figure}
+The Kruskal-Wallis statistical test returned a p-value of $0.00041$, which shows a significant
+difference between the scores of each optimisation algorithm. Figure \ref{fig:FM_time}
+presents the average time each model takes for construction across the 10-folds.
+\begin{figure}[H]
+    \centerline{\includegraphics[scale=0.29]{../Images/FM_time.PNG}}
+    \caption{Comparison of construction time for three optimisation algorithms when the Fashion MNIST dataset is classified by use of 10-fold cross-validation.}
+    \label{fig:FM_time}
+\end{figure}
+
+The models are then constructed on the same data split. Figure \ref{fig:FM_errors} represents
+the training and validation errors over epochs for each optimization algorithm on this data split.
+\begin{figure}[H]
+    \centering
+    \begin{subfigure}[b]{0.23\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{../Images/FM_SGD_errors.PNG}
+        \caption{\acrshort{sgd}}
+        \label{fig:FM_SGD_errors}
+    \end{subfigure}
+    \hfill
+    \begin{subfigure}[b]{0.23\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{../Images/FM_SCG_errors.PNG}
+        \caption{\acrshort{scg}}
+        \label{fig:FM_SCG_errors}
+    \end{subfigure}
+    \begin{subfigure}[b]{0.23\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{../Images/FM_LF_errors.PNG}
+        \caption{\acrshort{lfop}}
+        \label{fig:FM_LF_errors}
+    \end{subfigure}
+    \caption{Training and validation errors over epochs for the Fashion MNIST classification task of each optimisation algorithm}
+    \label{fig:FM_errors}
+\end{figure}
+Both the \acrshort{scg} and \acrshort{lfop} algorithms does not overfit the training data, as seen in Figure \ref{fig:FM_SCG_errors}
+and \ref{fig:FM_LF_errors}. However, the \acrshort{sgd} optimisation algorithm does overfit to the training data, where early
+stopping is then triggered due to a validation error that increases, which can be seen in Figure \ref{fig:FM_SGD_errors}.
+
+From this data split, the confusion matrices are produced to show the performance of each optimisation
+algorithm on the fashion MNIST dataset. These confusion matrices are presented in Figure \ref{fig:FM_Classification}.
+\begin{figure}[h!]
+    \centering
+    \begin{subfigure}[b]{0.23\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{../Images/FM_SGD_Confusion.PNG}
+        \caption{\acrshort{sgd}}
+        \label{fig:FM_SGD_Classification}
+    \end{subfigure}
+    \hfill
+    \begin{subfigure}[b]{0.23\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{../Images/FM_SCG_Confusion.PNG}
+        \caption{\acrshort{scg}}
+        \label{fig:FM_SCG_Classification}
+    \end{subfigure}
+    \begin{subfigure}[b]{0.23\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{../Images/FM_LF_Confusion.PNG}
+        \caption{\acrshort{lfop}}
+        \label{fig:FM_LF_Classification}
+    \end{subfigure}
+    \caption{Confusion matrix of the Fashion MNIST dataset for each optimization algorithm, with true labels on the y-axis and predicted labels on the x-axis.}
+    \label{fig:FM_Classification}
+\end{figure}
+
+After the examination of the results given above, it is deduced that the best optimisation algorithm
+to use on the fashion MNIST dataset is the \acrshort{sgd} optimisation algorithm. The \acrshort{sgd}
+algorithm the largest mean accuracy score and has the best distribution of accuracy scores. The \acrshort{sgd}
+optimisation algorithm is generally good at dealing with complex data patters, and although the algorithm
+takes longer to converge than the \acrshort{lfop} algorithm, the accuracy scores obtained by the \acrshort{sgd}
+model makes it the best optimisation algorithm for the fashion MNIST dataset.
+
+\subsection{Linear Function Approximation}
+
+By use of Bayesian optimisation, the optimal values of the control parameters in the
+\acrshort{sgd}, \acrshort{sgd}, and \acrshort{lfop} optimisation algorithm are determined as seen in
+Section \ref{section: control_parameters}.
+
+A 10-fold cross validation technique is then applied to each of these \acrshort{ffnn} models to compare each
+optimisation algorithm with one another. Table \ref{table: Linear_performance_metrics} presents the average
+and standard deviation of the performance metrics of the 10-fold cross validation for each optimisation algorithm.
+\begin{table}[H]
+    \caption{Performance Metrics of each Optimisation Algorithm Obtained from Approximating the Linear Function}
+    \begin{center}
+        \begin{tabular}{|c||c|c|c|c|}
+            \hline
+            \textbf{Algorithm}&\multicolumn{4}{|c|}{\textbf{Performance metrics}} \\
+            % \textbf{Max depth}
+            \cline{2-5}
+                        & \textbf{\textit{mean mse}} & \textbf{\textit{std mse}} & \textbf{\textit{mean time}} & \textbf{\textit{std time}}\\
+            \hline
+            \textbf{\textit{SGD}}  & 0.0013 & 0 & 211.63 & 65.69\\
+            \textbf{\textit{SCG}}  & 0.0415 & 0.0504 & 4.42 & 0.31\\
+            \textbf{\textit{LFOP}} & 0.0108 & 0.0283 & 2.91 & 0.58\\
+            \hline
+        \end{tabular}
+    \end{center}
+    \label{table: Linear_performance_metrics}
+\end{table}
+
+The \acrshort{mse} scores obtained from each fold by each \acrshort{ffnn}
+model are presented in Figure \ref{fig:Linear_function_comparison}.
+\begin{figure}[H]
+    \centerline{\includegraphics[scale=0.34]{../Images/Linear_func_comparison.PNG}}
+    \caption{Comparison of \acrshort{mse} for three optimisation algorithms when a linear function is approximated by use of 10-fold cross-validation.}
+    \label{fig:Linear_function_comparison}
+\end{figure}
+The Kruskal-Wallis statistical test returned a p-value of $2.48\times10^{-6}$, which shows a significant
+difference between the scores of each optimisation algorithm. Figure \ref{fig:Linear_function_time}
+presents the average time each model takes for construction across the 10-folds.
+\begin{figure}[H]
+    \centerline{\includegraphics[scale=0.29]{../Images/Linear_func_time.PNG}}
+    \caption{Comparison of construction time for three optimisation algorithms when a linear function is approximated by use of 10-fold cross-validation.}
+    \label{fig:Linear_function_time}
+\end{figure}
+
+The models are then constructed on the same generated data. Figure \ref{fig:Linear_errors} represents
+the training and validation errors over epochs for each optimization algorithm on this generated data.
+\begin{figure}[H]
+    \centering
+    \begin{subfigure}[b]{0.23\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{../Images/Linear_func_SGD_errors.PNG}
+        \caption{\acrshort{sgd}}
+        \label{fig:Linear_func_SGD_errors}
+    \end{subfigure}
+    \hfill
+    \begin{subfigure}[b]{0.23\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{../Images/Linear_func_SCG_errors.PNG}
+        \caption{\acrshort{scg}}
+        \label{fig:Linear_func_SCG_errors}
+    \end{subfigure}
+    \begin{subfigure}[b]{0.23\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{../Images/Linear_func_LF_errors.PNG}
+        \caption{\acrshort{lfop}}
+        \label{fig:Linear_func_LF_errors}
+    \end{subfigure}
+    \caption{Training and validation errors over epochs for the linear approximation task of each optimisation algorithm}
+    \label{fig:Linear_errors}
+\end{figure}
+All three the optimisation algorithms does not overfit to the data, as seen in Figure \ref{fig:Logistic_errors}.
+
+From this generated data, the output of each optimisation algorithm plots against
+the data to show how well the \acrshort{ffnn} model approximates the linear function.
+These plots is presented in Figure \ref{fig:Linear_approximation}.
+\begin{figure}[H]
+    \centering
+    \begin{subfigure}[b]{0.23\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{../Images/Linear_func_fitted_SGD.PNG}
+        \caption{\acrshort{sgd}}
+        \label{fig:Linear_func_SGD_approximation}
+    \end{subfigure}
+    \hfill
+    \begin{subfigure}[b]{0.23\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{../Images/Linear_func_fitted_SCG.PNG}
+        \caption{\acrshort{scg}}
+        \label{fig:Linear_func_SCG_approximation}
+    \end{subfigure}
+    \begin{subfigure}[b]{0.23\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{../Images/Linear_func_fitted_LF.PNG}
+        \caption{\acrshort{lfop}}
+        \label{fig:Linear_func_LF_approximation}
+    \end{subfigure}
+    \caption{Approximation of the linear function of each optimisation algorithm}
+    \label{fig:Linear_approximation}
+\end{figure}
+
+The \acrshort{sgd} optimisation algorithm returns the lowest mean score across the 10-folds and has
+a standard deviation of zero. Additionally, the \acrshort{sgd} algorithm approximates the linear
+function the best. Although this algorithm takes the longest to construct the \acrshort{ffnn} model, the
+\acrshort{sgd} is the optimal optimisation algorithm to use when the linear function is approximated.
+
+\subsection{Cubic Function Approximation}
+
+By use of Bayesian optimisation, the optimal values of the control parameters in the
+\acrshort{sgd}, \acrshort{sgd}, and \acrshort{lfop} optimisation algorithm are determined as seen in
+Section \ref{section: control_parameters}.
+
+A 10-fold cross validation technique is then applied to each of these \acrshort{ffnn} models to compare each
+optimisation algorithm with one another. Table \ref{table: Cubic_performance_metrics} presents the average
+and standard deviation of the performance metrics of the 10-fold cross validation for each optimisation algorithm.
+\begin{table}[H]
+    \caption{Performance Metrics of each Optimisation Algorithm Obtained from Approximating the Cubic Function}
+    \begin{center}
+        \begin{tabular}{|c||c|c|c|c|}
+            \hline
+            \textbf{Algorithm}&\multicolumn{4}{|c|}{\textbf{Performance metrics}} \\
+            % \textbf{Max depth}
+            \cline{2-5}
+                        & \textbf{\textit{mean mse}} & \textbf{\textit{std mse}} & \textbf{\textit{mean time}} & \textbf{\textit{std time}}\\
+            \hline
+            \textbf{\textit{SGD}}  & 0.0009 & 0.0003 & 270.96 & 5.39\\
+            \textbf{\textit{SCG}}  & 0.1239 & 0.1190 & 18.46 & 2.49\\
+            \textbf{\textit{LFOP}} & 0.0080 & 0.0031 & 26.96 & 0.93\\
+            \hline
+        \end{tabular}
+    \end{center}
+    \label{table: Cubic_performance_metrics}
+\end{table}
+
+The \acrshort{mse} scores obtained from each fold by each \acrshort{ffnn}
+model are presented in Figure \ref{fig:Cubic_function_comparison}.
+\begin{figure}[H]
+    \centerline{\includegraphics[scale=0.34]{../Images/Cubic_func_comparison.PNG}}
+    \caption{Comparison of \acrshort{mse} for three optimisation algorithms when a cubic function is approximated by use of 10-fold cross-validation.}
+    \label{fig:Cubic_function_comparison}
+\end{figure}
+The Kruskal-Wallis statistical test returned a p-value of $3.21\times10^{-6}$, which shows a significant
+difference between the scores of each optimisation algorithm. Figure \ref{fig:Cubic_function_time}
+presents the average time each model takes for construction across the 10-folds.
+\begin{figure}[H]
+    \centerline{\includegraphics[scale=0.29]{../Images/Cubic_func_time.PNG}}
+    \caption{Comparison of construction time for three optimisation algorithms when a cubic function is approximated by use of 10-fold cross-validation.}
+    \label{fig:Cubic_function_time}
+\end{figure}
+
+The models are then constructed on the same generated data. Figure \ref{fig:Cubic_errors} represents
+the training and validation errors over epochs for each optimization algorithm on this generated data.
+\begin{figure}[H]
+    \centering
+    \begin{subfigure}[b]{0.23\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{../Images/Cubic_func_SGD_errors.PNG}
+        \caption{\acrshort{sgd}}
+        \label{fig:Cubic_func_SGD_errors}
+    \end{subfigure}
+    \hfill
+    \begin{subfigure}[b]{0.23\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{../Images/Cubic_func_SCG_errors.PNG}
+        \caption{\acrshort{scg}}
+        \label{fig:Cubic_func_SCG_errors}
+    \end{subfigure}
+    \begin{subfigure}[b]{0.23\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{../Images/Cubic_func_LF_errors.PNG}
+        \caption{\acrshort{lfop}}
+        \label{fig:Cubic_func_LF_errors}
+    \end{subfigure}
+    \caption{Training and validation errors over epochs for the cubic approximation task of each optimisation algorithm}
+    \label{fig:Cubic_errors}
+\end{figure}
+All three the optimisation algorithms does not overfit to the data, as seen in Figure \ref{fig:Cubic_errors}.
+
+From this generated data, the output of each optimisation algorithm plots against
+the data to show how well the \acrshort{ffnn} model approximates the cubic function.
+These plots is presented in Figure \ref{fig:Cubic_approximation}.
+\begin{figure}[H]
+    \centering
+    \begin{subfigure}[b]{0.23\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{../Images/Cubic_func_fitted_SGD.PNG}
+        \caption{\acrshort{sgd}}
+        \label{fig:Cubic_func_SGD_approximation}
+    \end{subfigure}
+    \hfill
+    \begin{subfigure}[b]{0.23\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{../Images/Cubic_func_fitted_SCG.PNG}
+        \caption{\acrshort{scg}}
+        \label{fig:Cubic_func_SCG_approximation}
+    \end{subfigure}
+    \begin{subfigure}[b]{0.23\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{../Images/Cubic_func_fitted_LF.PNG}
+        \caption{\acrshort{lfop}}
+        \label{fig:Cubic_func_LF_approximation}
+    \end{subfigure}
+    \caption{Approximation of the cubic function of each optimisation algorithm}
+    \label{fig:Cubic_approximation}
+\end{figure}
+
+The \acrshort{sgd} optimisation algorithm returns the lowest mean score across the 10-folds and has
+the lowest deviation between the scores. Additionally, the \acrshort{sgd} algorithm approximates the cubic
+function the best. Although this algorithm takes the longest to construct the \acrshort{ffnn} model, the
+\acrshort{sgd} is the optimal optimisation algorithm to use when the cubic function is approximated.
+
+\subsection{Logistic Function Approximation}
+
+By use of Bayesian optimisation, the optimal values of the control parameters in the
+\acrshort{sgd}, \acrshort{sgd}, and \acrshort{lfop} optimisation algorithm are determined as seen in
+Section \ref{section: control_parameters}.
+
+A 10-fold cross validation technique is then applied to each of these \acrshort{ffnn} models to compare each
+optimisation algorithm with one another. Table \ref{table: Logistic_performance_metrics} presents the average
+and standard deviation of the performance metrics of the 10-fold cross validation for each optimisation algorithm.
+\begin{table}[H]
+    \caption{Performance Metrics of each Optimisation Algorithm Obtained from Approximating the Logistic Function}
+    \begin{center}
+        \begin{tabular}{|c||c|c|c|c|}
+            \hline
+            \textbf{Algorithm}&\multicolumn{4}{|c|}{\textbf{Performance metrics}} \\
+            % \textbf{Max depth}
+            \cline{2-5}
+                        & \textbf{\textit{mean mse}} & \textbf{\textit{std mse}} & \textbf{\textit{mean time}} & \textbf{\textit{std time}}\\
+            \hline
+            \textbf{\textit{SGD}}  & 0.064 & 0.0646 & 221.71 & 73.15\\
+            \textbf{\textit{SCG}}  & 0.5036 & 0.2195 & 18.46 & 7.90\\
+            \textbf{\textit{LFOP}} & 0.1031 & 0.0137 & 119.14 & 3.45\\
+            \hline
+        \end{tabular}
+    \end{center}
+    \label{table: Logistic_performance_metrics}
+\end{table}
+
+The \acrshort{mse} scores obtained from each fold by each \acrshort{ffnn}
+model are presented in Figure \ref{fig:Logistic_function_comparison}.
+\begin{figure}[H]
+    \centerline{\includegraphics[scale=0.34]{../Images/Logistic_func_comparison.PNG}}
+    \caption{Comparison of \acrshort{mse} for three optimisation algorithms when a logistic function is approximated by use of 10-fold cross-validation.}
+    \label{fig:Logistic_function_comparison}
+\end{figure}
+The Kruskal-Wallis statistical test returned a p-value of $7.95\times10^{-6}$, which shows a significant
+difference between the scores of each optimisation algorithm. Figure \ref{fig:Logistic_function_time}
+presents the average time takes model takes for construction across the 10-folds.
+\begin{figure}[H]
+    \centerline{\includegraphics[scale=0.29]{../Images/Logistic_func_time.PNG}}
+    \caption{Comparison of construction time for three optimisation algorithms when a logistic function is approximated by use of 10-fold cross-validation.}
+    \label{fig:Logistic_function_time}
+\end{figure}
+
+The models are then constructed on the same generated data. Figure \ref{fig:Logistic_errors} represents
+the training and validation errors over epochs for each optimization algorithm on this generated data.
+\begin{figure}[H]
+    \centering
+    \begin{subfigure}[b]{0.23\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{../Images/Logistic_func_SGD_errors.PNG}
+        \caption{\acrshort{sgd}}
+        \label{fig:Logistic_func_SGD_errors}
+    \end{subfigure}
+    \hfill
+    \begin{subfigure}[b]{0.23\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{../Images/Logistic_func_SCG_errors.PNG}
+        \caption{\acrshort{scg}}
+        \label{fig:Logistic_func_SCG_errors}
+    \end{subfigure}
+    \begin{subfigure}[b]{0.23\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{../Images/Logistic_func_LF_errors.PNG}
+        \caption{\acrshort{lfop}}
+        \label{fig:Logistic_func_LF_errors}
+    \end{subfigure}
+    \caption{Training and validation errors over epochs for the logistic approximation task of each optimisation algorithm}
+    \label{fig:Logistic_errors}
+\end{figure}
+All three the optimisation algorithms does not overfit to the data, as seen in Figure \ref{fig:Logistic_errors}.
+
+From this generated data, the output of each optimisation algorithm plots against
+the data to show how well the \acrshort{ffnn} model approximates the logistic function.
+These plots is presented in Figure \ref{fig:Logistic_approximation}.
+\begin{figure}[H]
+    \centering
+    \begin{subfigure}[b]{0.23\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{../Images/Logistic_func_fitted_SGD.PNG}
+        \caption{\acrshort{sgd}}
+        \label{fig:Logistic_func_SGD_approximation}
+    \end{subfigure}
+    \hfill
+    \begin{subfigure}[b]{0.23\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{../Images/Logistic_func_fitted_SCG.PNG}
+        \caption{\acrshort{scg}}
+        \label{fig:Logistic_func_SCG_approximation}
+    \end{subfigure}
+    \begin{subfigure}[b]{0.23\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{../Images/Logistic_func_fitted_LF.PNG}
+        \caption{\acrshort{lfop}}
+        \label{fig:Logistic_func_LF_approximation}
+    \end{subfigure}
+    \caption{Approximation of the logistic function of each optimisation algorithm}
+    \label{fig:Logistic_approximation}
+\end{figure}
+
+The \acrshort{sgd} optimisation algorithm returns the lowest mean score across the 10-folds and has
+the lowest deviation between the scores. Additionally, the \acrshort{sgd} algorithm approximates the logistic
+function the best. Although this algorithm takes the longest to construct the \acrshort{ffnn} model and there
+is one fold that generated a much higher \acrshort{mse}, the \acrshort{sgd} is the optimal optimisation algorithm
+to use when the logistic function is approximated.
+
+\section{Conclusion} \label{section: Conclusion}
+
+This paper provides a comparative analysis of three optimisation algorithms used
+to adjust the weights of a \acrfull{ffnn} model. The three optimisation
+algorithms examined in this paper is the \acrfull{sgd} optimisation algorithm,
+the \acrfull{scg} optimisation algorithm, and the \acrfull{lfop} algorithm.
+The results from three classification tasks and three function approximation
+tasks that vary in complexity reveal that each optimisation algorithm has distinct
+strenghts and weaknesses.
+
+The \acrshort{sgd} optimisation algorithm performs well in function approximation tasks, as
+it achieves the best performance on linear, cubic, and logistic function approximation
+tasks, although it is computationally expensive. The \acrshort{sgd} optimisation
+algorithm performs the best on the fashion MNIST dataset, as the algorithm is able to handle
+complex data better than the rest of the optimisation algorithms. The \acrshort{scg} optimisation algorithm is
+quick to converge and generally works better on smaller datasets, as the optimisation algorithm performed
+the best on the breast cancer dataset. The \acrshort{lfop} algorithm
+performs the best on the large datasets, as it is less susceptible to local minima and ,therefore,
+tends to converge faster than the other optimisation algorithm. \acrshort{lfop} performed the best
+on the moderatly, which is the body performance.
+
+\begin{thebibliography}{00}
+    \bibitem{activation_function_ref} A. Athaiya, S. Sharma, S. Sharma "Activation functions in neural networks." In: Towards Data Sci (2017).
+    \bibitem{mse_ref} A. C. Bovik, Z. Wang "Mean squared error: Love it or leave it? A new look at signal fidelity measures." In: IEEE signal processing magazine (2009).
+    \bibitem{objective_function_ref} Y. Bengio, L. Bottou, P. Haffner, Y. LeCun "Gradient-based learning applied to document recognition." In: Proceedings of the IEEE (1998).
+    \bibitem{performance_metrics_ref} C. Ferri, J. Hernández-Orallo, R. Modroiu "An experimental comparison of performance measures for classification." In: Pattern recognition letters (2009).
+    \bibitem{weight_decay_ref} J. Hertz, A. Krogh "A simple weight decay can improve generalization." In: Advances in neural information processing systems (1991).
+    \bibitem{backpropagation_ref} G. E. Hinton, D. E. Rumelhart, R. J Williams. "Learning representations by back-propagating errors." (1986).
+    \bibitem{relu_ref} G. E. Hinton, V. Nair "Rectified linear units improve restricted boltzmann machines." In: In Proceedings of the 27th international conference on machine learning (2010).
+    \bibitem{sgd_ref_2} J. Kiefer, J. Wolfowitz "Stochastic estimation of the maximum of a regression function." In: The Annals of Mathematical Statistics (1952).
+    \bibitem{FFNN_ref} W. S. McCulloch, W. Pitts "A logical calculus of the ideas immanent in nervous activity." In: The bulletin of mathematical biophysics (1943).
+    \bibitem{scg_ref} M. F. Møller "A scaled conjugate gradient algorithm for fast supervised learning." In: Neural networks (1993).
+    \bibitem{sgd_ref_1} H. Robbins, S. Monro "A stochastic approximation method." In: The annals of mathematical statistics (1951).
+    \bibitem{Perceptron_ref} F. Rosenblatt "The perceptron: a probabilistic model for information storage and organization in the brain." In: Psychological review (1958).
+    \bibitem{leapfrog_ref} J. A. Snyman "A new and dynamic method for unconstrained minimization." In: Applied Mathematical Modelling (1982).
+\end{thebibliography}
+
+\printglossary[type=\acronymtype]
+
+
+\end{document}

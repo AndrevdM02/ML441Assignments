@@ -1,0 +1,28 @@
+Let's break down the symbols used in the Scaled Conjugate Gradient (SCG) algorithm as applied to a one hidden layer feedforward neural network:
+
+w̄ₖ: The vector of all weights in the network, including both hidden and output layer weights.
+σ: A small scalar used for finite difference approximation (typically 10⁻⁴ as shown in the image).
+λ₁: Initial value for the scale parameter λₖ (set to 10⁻⁶ in the image).
+λ̄₁: Initial value for λ̄ₖ (set to 0 in the image).
+p̄₁: Initial search direction (set to -E'(w̄₁), the negative gradient of the error function).
+r̄₁: Initial residual vector (also set to -E'(w̄₁)).
+E(w̄ₖ): Error function (typically mean squared error or cross-entropy) evaluated at w̄ₖ.
+E'(w̄ₖ): Gradient of the error function with respect to the weights.
+sₖ: Approximation of the Hessian-vector product.
+δₖ: A scalar used in the algorithm's calculations.
+μₖ: Another scalar used in the algorithm's calculations.
+αₖ: Step size for weight update.
+Δₖ: Comparison parameter used to determine if the step is successful.
+βₖ: Scalar used to calculate the new search direction.
+N: Number of weights in the network (used for restarting the algorithm periodically).
+k: Iteration counter.
+success: Boolean flag indicating whether the current step was successful.
+
+In the context of a one hidden layer feedforward neural network:
+
+w̄ₖ would include weights connecting the input to hidden layer and hidden to output layer.
+E(w̄ₖ) would be calculated by forward propagating through the network and comparing output to targets.
+E'(w̄ₖ) would be calculated using backpropagation.
+The algorithm aims to find the optimal w̄ₖ that minimizes the error function.
+
+The SCG algorithm uses these symbols to efficiently navigate the error surface and find the optimal weights without requiring a line search at each iteration, making it faster than traditional conjugate gradient methods for neural network training.

@@ -306,6 +306,9 @@ TSWLatexianTemp*
 #*Notes.bib
 
 *.ipynb_checkpoints
-*.pdf
+
 Assignment1/~$DryBeanDataSet.xlsx
+Assignment2/data
+Assignment2/Images
+Assignment3/data
 *__pycache__

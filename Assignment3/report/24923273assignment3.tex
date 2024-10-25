@@ -1,0 +1,257 @@
+\documentclass[10pt, conference]{IEEEtran}
+\IEEEoverridecommandlockouts
+% The preceding line is only needed to identify funding in the first footnote. If that is unneeded, please comment it out.
+\usepackage{cite}
+\usepackage{amsmath,amssymb,amsfonts}
+\usepackage{algorithm}
+% \usepackage{algorithmic}
+\usepackage{algpseudocode}
+\usepackage{graphicx}
+\usepackage{textcomp}
+\usepackage{xcolor}
+\usepackage{bm}
+\usepackage{subcaption}
+\usepackage{float}
+\usepackage{afterpage}
+\usepackage[acronym]{glossaries}
+\def\BibTeX{{\rm B\kern-.05em{\sc i\kern-.025em b}\kern-.08em
+    T\kern-.1667em\lower.7ex\hbox{E}\kern-.125emX}}
+
+
+\makeglossaries
+
+\newacronym{sse}{SSE}{sum of squared error}
+
+\begin{document}
+
+\title{Assignment 3 Option 2 \\
+Quantity To Produce Quality
+}
+
+\author{\IEEEauthorblockN{A.D. van der Merwe}
+\IEEEauthorblockA{Department of Computer Science \\
+University of Stellenbosch\\
+24923273 \\
+24923273@sun.ac.za}
+}
+
+\maketitle
+
+\begin{abstract}
+
+\end{abstract}
+
+\section{Introduction}
+
+\section{Background} \label{section: Background}
+
+This section presents background information on the gradient descent optimisation algorithm, logistic
+regression model, and ensemble learning. Additionally, background information on bootstrap aggregating,
+also known as bagging, basis functions, and performance metrics used in this report.
+
+\subsection{Gradient Descent}
+
+The gradient descent algorithm was first introduced by Augustin-Louis Cauchy
+in 1847 \cite{gradient_descent_ref}. Cauchy introduced gradient descent to solve optimisation
+systems of simultaneous equations through iterative optimisation to find the minimum of a function.
+Cauchy also introduced the step size parameter, now commonly referred to as the learning rate, to control
+how large the steps are for each iteration as the algorithm updates model parameters to reach an optimal
+solution.
+
+The generic learning algorithm of gradient descent is represented by Algorithm \ref{alg:GDLA_algorithm}.
+\begin{algorithm}[H]
+    \caption{Gradient Descent Learning Algorithm}
+    \label{alg:GDLA_algorithm}
+    \begin{algorithmic}[1]
+        \State Preprocess the training set $D_T$ as necessary
+        \State Initialise parameter vector, \textbf{w}$(t)$, $t=0$
+        \State Initialise the learning rate $\eta$
+        \While{stopping condition not satisfied}
+            \For{each $i = 1,...,n_T$}
+                \State Calculate error signal, $\delta(t)$
+                \State Calculate a search direction, \textbf{q}$(t) = f\left( \text{\textbf{w}}(t), \delta(t) \right)$
+                \State Update parameter vector: \textbf{w}$(t+1) = \text{\textbf{w}}(t) + \eta \text{\textbf{q}}(t)$
+            \EndFor
+            \State $t = t + 1$
+            \State Compute prediction error
+        \EndWhile
+        \State Return \textbf{w}$(t-1)$ as solution
+    \end{algorithmic}
+\end{algorithm}
+
+\subsection{Logistic Regression}
+
+The logistic regression model was first introduced by David Cox in 1958 as a method to perform binary
+classification \cite{logistic_regression_ref}. Cox specifically designed the logistic regression
+model to model the probability of a binary outcome as a function of descriptive features.
+
+To construct a logistic regression model that makes use of gradient descent as an optimisation
+algorithm, a threshold function that is continuous, and therefore differentiable is needed. This function
+is known as the logistic function and is represented by the mathematical equation below.
+\begin{equation}
+    Logistic(z) = \frac{1}{1 + e^{-z}} \label{eq: logistic_function}
+\end{equation}
+where $z$ is a numeric value.
+
+Before the logistic regression model is constructed the binary target features are mapped to 0 or 1.
+The logistic regression model is then constructed by use of the equation that follows.
+\begin{equation}
+    \mathbb{M}_{\textbf{w}}(\textbf{d}_i) = \frac{1}{1 + e^{-\textbf{w} \cdot \textbf{d}_i}} \label{eq: logistic_regression_equation}
+\end{equation}
+where $\textbf{d}_i$ is a vector of the $i$-th descriptive features, with the bias term represented by $\textbf{d}_0$ and equal to one,
+\textbf{w} is a vector of weights, where $\textbf{w}_0$ represents the weight of the bias term, and the weights that remain corresponds
+to their respective descriptive features in $\textbf{d}_i$. The term $\mathbb{M}_{\textbf{w}}(\textbf{d}_i)$ represents the predicted output
+for the $i$-th instance of the logistic regression model. The output of the logistic regression model can be interpreted as probabilities
+of the occurrence of a target instance that belongs to a specific class. The probability the $i$-th target instance that belongs to class one
+is given by the equation below.
+\begin{equation}
+    P(y_i = 1|\textbf{d}_i) = \mathbb{M}_{\textbf{w}}(\textbf{d}_i) \label{eq: classified_class_1}
+\end{equation}
+where $y_i$ is the true label for the $i$-th observation. Similarly, the probability of the $i$-th target instance that belongs to class
+zero is given by the equation below.
+\begin{equation}
+    P(y_i = 0|\textbf{d}_i) = 1 - \mathbb{M}_{\textbf{w}}(\textbf{d}_i) \label{eq: classified_class_0}
+\end{equation}
+
+To classify the $i$-th target instance, $\mathbb{M}_{\textbf{w}}(\textbf{d}_i)$ is compared to a threshold of $0.5$. The equation used
+to classify the $i$-th target feature that belongs to either class zero or class one is given as follows.
+\begin{equation}
+    \hat{y}_i = 
+    \begin{cases}
+    0 & \text{if } \mathbb{M}_{\textbf{w}}(\textbf{d}_i) < 0.5 \\
+    1 & \text{if } \mathbb{M}_{\textbf{w}}(\textbf{d}_i) \geq 0.5 
+    \end{cases}
+    \label{eq: classify_target_instance}
+\end{equation}
+where $\hat{y}_i$ is the predicted class of the $i$-th binary target variable.
+
+Gradient descent is used as the optimisation algorithm to find the optimal decision boundary for a logistic regression model.
+The optimal decision boundary is defined as the set of weights that minimise the \acrfull{sse} based on the training set.
+The mathematical represntation of the \acrshort{sse} is as follows.
+\begin{equation}
+    L_2\left(\mathbb{M}_{\textbf{w}}, \mathcal{D}\right) = \frac{1}{2} \sum_{i=1}^{n} \left( y_i - \mathbb{M}_{\textbf{w}}(\textbf{d}_i) \right)^2 \label{eq: sse_function}
+\end{equation}
+where $\mathcal{D}$ is the training dataset and $n$ is the number of instances in the training dataset and $L_2$ is the
+\acrshort{sse} of the training dataset.
+
+The equation used to represent the error signal used in the gradient descent optimisation algorithm to update the weights
+of the logistic regression model is as follows.
+\begin{equation}
+    \delta(\mathcal{D}, w_j) = \sum_{i=1}^{n} \left((y_i - \mathbb{M}_{\textbf{w}}(\textbf{d}_i)) \mathbb{M}_{\textbf{w}}(\textbf{d}_i)
+                                    (1-\mathbb{M}_{\textbf{w}}(\textbf{d}_i)) d_{j,i}\right) \label{eq: error_signal}
+\end{equation}
+where $w_j$ is the $j$-th weight of the logistic regression model.
+
+The equation used to update the weights of the logistic regression model by use of the gradient descent optimisation algorithm
+is as follows.
+\begin{equation}
+    w_j = w_j + \eta \sum_{i=1}^{n} \left((y_i - \mathbb{M}_{\textbf{w}}(\textbf{d}_i)) \mathbb{M}_{\textbf{w}}(\textbf{d}_i)
+                            (1-\mathbb{M}_{\textbf{w}}(\textbf{d}_i)) d_{j,i}\right) \label{eq: weight_update}
+\end{equation}
+where $\eta$ is the learning rate.
+
+\subsection{Basis Functions}
+
+\subsection{Ensemble Learning}
+
+\subsection{Bootstrap Aggregating}
+
+\subsection{Performance Metrics} \label{section: Perf_Metrics_background}
+
+Performance metrics are essential tools when the effectiveness of classification models are evaluated. Performance metrics
+provide a quantitative measure of how reliable and accurate a prediction model performs classification on a dataset.
+Key metrics include accuracy, precision, recall, and F1-score, each offering unique insights into different aspects
+of model performance \cite{Performance_ref}.
+
+\paragraph{Accuracy}
+Accuracy is a common method used to evaluate the performance of classification models. The accuracy of
+a predictive classification model is determined by the proportion of correctly predicted labels against
+the total number of predictions. The calculation of the accuracy of a predictive model is as follows:
+\begin{equation}
+    \text{Accuracy} = \frac{\text{Number of Correct Predictions}}{\text{Total Number of Predictions}} \label{accuracy}
+\end{equation}
+
+Accuracy is a popular choice of performance measure mainly beacause it is fairly easy to understand and compute.
+Accuracy generally perform well on well balanced datasets. On imbalanced datasets, accuracy can produce
+values that are misleading. If a model predicts 
+
+\paragraph{Precision and Recall}
+Precision is the proportion of \acrfull{tp} predictions against all of the \acrshort{tp} and \acrfull{fp}.
+The equation to calculate the precision of a classification model is as follows:
+\begin{equation}
+    \text{Precision} = \frac{\text{True Positives}}{\text{True Positives} + \text{False Positives}} \label{Precision}
+\end{equation}
+
+Recall is the proportion of \acrshort{tp} predictions against all of the \acrshort{tp} and \acrfull{fn}.
+The equation to calculate the recall of a classification model is as follows:
+\begin{equation}
+    \text{Recall} = \frac{\text{True Positives}}{\text{True Positives} + \text{False Negatives}} \label{Recall}
+\end{equation}
+
+\paragraph{F1-score}
+
+The F1-score, also known as the Dice similarity coefficient, is the harmonic mean of precision and recall,
+that provides a balance between the precision and recall \cite{F1-score_ref}.
+In multiclass classificationprecision and recall are adapted from binary classification to handle multiple classes.
+Instead of focusing on a single positive and negative class, these metrics are calculated for each class,
+where each class is treated as the positive class while considering all others as negative. The F1-score
+is calculated for each clas and then averaged. There are three types of averaging F1-score metrics.
+
+The first F1-score metric is the macro averaging F1-score, where the F1-score is calculated  independently for each label
+and then these scores are averaged, giving each class the same weight. The equation used to calculate the macro F1-score is
+as follow:
+\begin{equation}
+    F1_{macro} = \frac{1}{C} \sum_{i=1}^{C} \frac{2 \times Precision_i \times Recall_i}{Precision_i + Recall_i} \label{macro_F1}
+\end{equation}
+where $C$ is the number of classes.
+
+\section{Implementation} \label{section: Implementation}
+
+\section{Empirical Procedure} \label{section: Empeirical Procedure}
+
+\subsection{Performance Metrics}
+
+\subsection{Data Preprocessing}
+
+\subsection{Experimental Setup} \label{section: experimental_setup_emp}
+
+\subsection{Control Parameters} \label{section: control_parameters}
+
+\begin{table}[h!]
+    \caption{Logistic Regression Control Parameters}
+    \begin{center}
+        \begin{tabular}{|c||c|c|c|}
+            \hline
+            \textbf{Dataset}&\multicolumn{3}{|c|}{\textbf{Control Parameters}} \\
+            % \textbf{Max depth}
+            \cline{2-4}
+                        & \textbf{\textit{eta}} & \textbf{\textit{epochs}} & \textbf{\textit{patience}}\\
+            \hline
+            \textbf{\textit{Breast Cancer}} & 0.00239 & 10678 & 6 \\
+            \textbf{\textit{Diabetes Dataset}} & 0.01121 & 18690 & 9\\
+            \textbf{\textit{Banana Quality}}  & 0.00023 & 4338 & 5 \\
+            \textbf{\textit{Water Quality}} & 0.00601 & 25484 & 9 \\
+            \textbf{\textit{Spiral Dataset}} & 0.06708 & 17335 & 7\\
+            \hline
+        \end{tabular}
+    \end{center}
+    \label{table: LR_control_parameters}
+\end{table}
+
+\subsection{Statistical Significance and Analysis}
+
+\section{Research Results} \label{section: Research Results}
+
+\section{Conclusion} \label{section: Conclusion}
+
+\begin{thebibliography}{00}
+    \bibitem{Performance_ref} J. Braet, M. Cristina, Hinojosa-Lee, and J. Springael. "Evaluating performance metrics in emotion lexicon distillation: a focus on F1 scores." (2024).
+    \bibitem{gradient_descent_ref} A. Cauchy "Méthode générale pour la résolution des systemes d’équations simultanées." In: Comp. Rend. Sci. Paris (1847).
+    \bibitem{logistic_regression_ref} D. R. Cox "The regression analysis of binary sequences." In: Journal of the Royal Statistical Society Series B: Statistical Methodology (1958).
+    \bibitem{F1-score_ref} B. J. Erickson, and K. Felipe "Magician’s corner: 9. Performance metrics for machine learning models." In: Radiology: Artificial Intelligence 3, no. 3 (2021): e200126.
+\end{thebibliography}
+
+\printglossary[type=\acronymtype]
+
+
+\end{document}
