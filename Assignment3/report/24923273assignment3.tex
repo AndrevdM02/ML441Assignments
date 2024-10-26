@@ -20,7 +20,10 @@
 
 \makeglossaries
 
+\newacronym{fp}{FP}{false positive}
+\newacronym{fn}{FN}{false negative}
 \newacronym{sse}{SSE}{sum of squared error}
+\newacronym{tp}{TP}{true positive}
 
 \begin{document}
 
@@ -47,7 +50,7 @@ University of Stellenbosch\\
 
 This section presents background information on the gradient descent optimisation algorithm, logistic
 regression model, and ensemble learning. Additionally, background information on bootstrap aggregating,
-also known as bagging, basis functions, and performance metrics used in this report.
+basis functions, and performance metrics used in this report.
 
 \subsection{Gradient Descent}
 
@@ -150,11 +153,62 @@ is as follows.
 \end{equation}
 where $\eta$ is the learning rate.
 
+The logistic regression model is quite robust to noise and outliers in the dataset. However, the logistic
+regression can not handle missing values and sensitive to imbalanced classes. Additionally, the logistic
+regression model requires categorical features to be encoded into numerical representation by either the
+ordinal encoded or the one hot encoded technique and the data needs to be scaled or normalised. The logistic
+regression also assumes a linear relationship between the descriptive features, where the actual relationship
+between descriptive features might be non-linear.
+
 \subsection{Basis Functions}
+
+Basis functions are non-linear elements which transforms the linear inputs to the logistic regression
+into non-linear represntations, while the model itself remains linear in terms of the weights \cite{basis_fun_ref}.
+The addition of basis functions allows logistic regression model to capture relationships between descriptive
+features which are non-linear.
+
+The data is transformed by use of a series of basis functions, which enables the logistic regression model to effectively
+manage non-linear relationships between descriptive features. A logistic regression model that makes use of
+basis functions is represented by the equation below.
+\begin{equation}
+    \mathbb{M}_{\textbf{w}}(\textbf{d}_i) = \frac{1}{1 + e^{-\sum_{j=0}^{b}w_j \phi_j(\textbf{d}_i)}} \label{eq: non_logistic_regression_equation}
+\end{equation}
+where $\phi_0$ to $\phi_b$ are a series of $b$ basis functions that each transform the $i$-th input vector $\textbf{d}_i$ in a different way.
+Usually $b$ is larger than $n$, which means that there are more basis functions than there are descriptive features.
+
+There are several disadvantages when basis functions are used in a logistic regression model to capture non-linear relationships
+between descriptive features. Firstly, some prior knowledge of these non-linear relationships is required to select appropriate
+basis functions. Secondly, an increased number of basis functions results in larger gradient descent search spaces, which can lead to
+longer convergence times and complicate the optimisation process.
 
 \subsection{Ensemble Learning}
 
+Ensemble learning combines several individual models to to obtain better generalisation performance and predict a new instance
+based on multiple models opposed to a single model \cite{Ensemble_ref}.
+
+Each model in an ensemble is trained on the same dataset and yields slightly different results due to variations
+in training data, model configurations or model architectures. Each model performs differently on certain data
+patterns. By aggregating these diverse models, the ensemble will balance individual errors and
+achieve better overall performance than any single model alone. This diversity helps the ensemble to cover the
+limitations of each model, which results in more accurate and robust predictions. An ensemble also helps to
+decrease the variance in the model predictions.
+
+Approaches used to create these diverse models are
+\begin{itemize}
+    \item Train the the same type of model on different subsets of the observation of the training data.
+    \item Train the same type of model which uses different features of the training data.
+    \item Use different types of models, that results in heterogeneous ensembles and cancels out the inductive bias of each model.
+    \item Use different training or optimisation algorithms.
+    \item Use different control parameters
+    \item Use different model architectures.
+\end{itemize}
+An ensemble that contains only one type of model is called a homogeneous ensemble.
+
 \subsection{Bootstrap Aggregating}
+
+Bootstrap aggregating, also know as bagging, was first introduced by Leo Breiman, in 1996, as a method
+used to generate a diverse set of models to produce an aggregated model \cite{Bagging_ref}. This diverse
+set of models is formed by training different models on a subset of the original data.
 
 \subsection{Performance Metrics} \label{section: Perf_Metrics_background}
 
@@ -173,7 +227,7 @@ the total number of predictions. The calculation of the accuracy of a predictive
 
 Accuracy is a popular choice of performance measure mainly beacause it is fairly easy to understand and compute.
 Accuracy generally perform well on well balanced datasets. On imbalanced datasets, accuracy can produce
-values that are misleading. If a model predicts 
+values that are misleading.
 
 \paragraph{Precision and Recall}
 Precision is the proportion of \acrfull{tp} predictions against all of the \acrshort{tp} and \acrfull{fp}.
@@ -190,20 +244,20 @@ The equation to calculate the recall of a classification model is as follows:
 
 \paragraph{F1-score}
 
-The F1-score, also known as the Dice similarity coefficient, is the harmonic mean of precision and recall,
-that provides a balance between the precision and recall \cite{F1-score_ref}.
-In multiclass classificationprecision and recall are adapted from binary classification to handle multiple classes.
-Instead of focusing on a single positive and negative class, these metrics are calculated for each class,
-where each class is treated as the positive class while considering all others as negative. The F1-score
-is calculated for each clas and then averaged. There are three types of averaging F1-score metrics.
+When a binary classification dataset has imbalanced classes, the accuracy of a model can present a high score that does not
+represent good performance, as the majority group could be overclassified. Therefore, when an imbalanced binary classification
+dataset is used, it is better to use multiple performance metrics.
 
-The first F1-score metric is the macro averaging F1-score, where the F1-score is calculated  independently for each label
-and then these scores are averaged, giving each class the same weight. The equation used to calculate the macro F1-score is
-as follow:
+The binary F1-score, also known as the Dice
+similarity coefficient, is the harmonic mean of precision and recall, that provides a balance between the
+precision and recall \cite{F1-score_ref}.
+The equation used to calculate the binary F1-score is as follows.
+
 \begin{equation}
-    F1_{macro} = \frac{1}{C} \sum_{i=1}^{C} \frac{2 \times Precision_i \times Recall_i}{Precision_i + Recall_i} \label{macro_F1}
+    F1 = \frac{2 \times \text{Precision} \times \text{Recall}}{\text{Precision} + \text{Recall}} \label{F1}
 \end{equation}
-where $C$ is the number of classes.
+The binary F1-score proves especially useful when model performance is assessed on imbalanced binary classification
+datasets.
 
 \section{Implementation} \label{section: Implementation}
 
@@ -218,7 +272,7 @@ where $C$ is the number of classes.
 \subsection{Control Parameters} \label{section: control_parameters}
 
 \begin{table}[h!]
-    \caption{Logistic Regression Control Parameters}
+    \caption{Linear Logistic Regression Control Parameters}
     \begin{center}
         \begin{tabular}{|c||c|c|c|}
             \hline
@@ -238,6 +292,27 @@ where $C$ is the number of classes.
     \label{table: LR_control_parameters}
 \end{table}
 
+\begin{table}[h!]
+    \caption{Non-Linear Logistic Regression Control Parameters}
+    \begin{center}
+        \begin{tabular}{|c||c|c|c|c|}
+            \hline
+            \textbf{Dataset}&\multicolumn{4}{|c|}{\textbf{Control Parameters}} \\
+            % \textbf{Max depth}
+            \cline{2-5}
+                        & \textbf{\textit{eta}} & \textbf{\textit{epochs}} & \textbf{\textit{patience}} & \textbf{\textit{\% poly}}\\
+            \hline
+            \textbf{\textit{Breast Cancer}} & 0.00011 & 7290 & 10 & 40\\
+            \textbf{\textit{Diabetes Dataset}} &  &  &  & \\
+            \textbf{\textit{Banana Quality}}  &  &  &  & \\
+            \textbf{\textit{Water Quality}} &  &  &  & \\
+            \textbf{\textit{Spiral Dataset}} &  &  &  & \\
+            \hline
+        \end{tabular}
+    \end{center}
+    \label{table: NLR_control_parameters}
+\end{table}
+
 \subsection{Statistical Significance and Analysis}
 
 \section{Research Results} \label{section: Research Results}
@@ -246,9 +321,12 @@ where $C$ is the number of classes.
 
 \begin{thebibliography}{00}
     \bibitem{Performance_ref} J. Braet, M. Cristina, Hinojosa-Lee, and J. Springael. "Evaluating performance metrics in emotion lexicon distillation: a focus on F1 scores." (2024).
+    \bibitem{Bagging_ref} L. Breiman "Bagging predictors." In: Machine learning (1996).
     \bibitem{gradient_descent_ref} A. Cauchy "Méthode générale pour la résolution des systemes d’équations simultanées." In: Comp. Rend. Sci. Paris (1847).
     \bibitem{logistic_regression_ref} D. R. Cox "The regression analysis of binary sequences." In: Journal of the Royal Statistical Society Series B: Statistical Methodology (1958).
-    \bibitem{F1-score_ref} B. J. Erickson, and K. Felipe "Magician’s corner: 9. Performance metrics for machine learning models." In: Radiology: Artificial Intelligence 3, no. 3 (2021): e200126.
+    \bibitem{basis_fun_ref} J. D. Kelleher, B. Mac Namee, and A. D'arcy "Fundamentals of machine learning for predictive data analytics: algorithms, worked examples, and case studies." In: MIT press (2020).
+    \bibitem{F1-score_ref} B. J. Erickson, and K. Felipe "Magician’s corner: 9. Performance metrics for machine learning models." In: Radiology: Artificial Intelligence 3(2021).
+    \bibitem{Ensemble_ref} M. A. Ganaie, M., Hu, A. K. Malik, M. Tanveer and P. N. Suganthan "Ensemble deep learning: A review." In: Engineering Applications of Artificial Intelligence (2022).
 \end{thebibliography}
 
 \printglossary[type=\acronymtype]

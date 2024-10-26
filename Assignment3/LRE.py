@@ -2,7 +2,7 @@ import numpy as np
 from joblib import Parallel, delayed
 
 class LogisticRegressionEnsemble:
-    def __init__(self, num_models = 5, learning_rate = 0.1, iterations = 1000, patience = 5, bias = 1, bag_size=0.8, n_jobs=-1, num_features=0.8, random_state=None, polynomial_degree=1):
+    def __init__(self, num_models = 5, learning_rate = 0.1, iterations = 1000, patience = 5, bias = 1, bag_size=0.8, n_jobs=-1, num_features=0.8, random_state=None, polynomial_degree=1, num_nonlinear_features = 1):
         self.learning_rate = learning_rate
         self.num_models = num_models
         self.bias = bias
@@ -15,6 +15,8 @@ class LogisticRegressionEnsemble:
         self.models = []
         self.n_jobs = n_jobs
         self.validation_error = []
+        self.num_nonlinear_features = num_nonlinear_features
+        self.feature_nonlinear_index = []
     
     def sigmoid(self, z):
         return np.clip(1 / (1 + np.exp(-np.clip(z, -709, 709))), 1e-12, 1 - 1e-12)
@@ -40,11 +42,14 @@ class LogisticRegressionEnsemble:
             for i in feature_indices:
                 terms.append([i] * degree)
                 
+            # Interaction terms
             if degree > 1:
-                for base_feature in feature_indices:
-                    for other_feature in feature_indices:
-                        if base_feature != other_feature:
-                            term = [base_feature] * (degree - 1) + [other_feature]
+                for i in feature_indices:
+                    for j in feature_indices[i+1:]:  # Only consider unique combinations
+                        term = [i] * (degree - 1) + [j]
+                        terms.append(term)
+                        if degree > 2:  # Add reverse combination for degree > 2
+                            term = [j] * (degree - 1) + [i]
                             terms.append(term)
         
         return terms
@@ -65,6 +70,27 @@ class LogisticRegressionEnsemble:
             X_transformed[:, i + 1] = term
             
         return X_transformed
+    
+    def select_random_features(self, X, iter):
+        n_total_features = X.shape[1]
+        
+        if self.polynomial_degree > 1:
+            # Calculate number of features to select based on percentage
+            n_features_to_select = max(1, int(self.num_nonlinear_features * n_total_features))
+            n_features_to_select = min(n_features_to_select, n_total_features)
+            
+            if self.random_state is not None:
+                np.random.seed(self.random_state + iter)
+            
+            # Always include the bias term (index 0) and randomly select other features
+            selected_indices = np.concatenate([
+                [0],  # bias term
+                1 + np.random.choice(n_total_features - 1, n_features_to_select - 1, replace=False)
+            ])
+            
+            return np.sort(selected_indices)
+        
+        return None
     
     def calculate_loss(self, X, y, weights):
         pred = self.sigmoid(X @ weights.T)
@@ -128,29 +154,42 @@ class LogisticRegressionEnsemble:
         feature_idx = np.random.choice(n_features, feature_subset, replace=False)
         X_subset = X_bag[:, feature_idx]
         
+        # Transform features and select nonlinear terms
         X_transformed = self.apply_polynomial_features(X_subset)
+        nonlinear_feature_idx = self.select_random_features(X_transformed, iter)
+        
+        if nonlinear_feature_idx is not None:
+            X_transformed = X_transformed[:, nonlinear_feature_idx]
+            if X_val is not None:
+                X_val_transformed = self.apply_polynomial_features(X_val[:, feature_idx])
+                X_val_transformed = X_val_transformed[:, nonlinear_feature_idx]
+        else:
+            if X_val is not None:
+                X_val_transformed = self.apply_polynomial_features(X_val[:, feature_idx])
+
         if X_val is not None:
-            X_val_transformed = self.apply_polynomial_features(X_val[:, feature_idx])
             # Fit model
-            weights, best_loss = self.fit_single_model(X_transformed, y_bag, X_val_transformed, y_val, iter)
+            weights, best_loss = self.fit_single_model(X_transformed, y_bag, X_val_transformed, y_val)
         else:
             # Fit model
-            weights, best_loss = self.fit_single_model(X_transformed, y_bag, iter)
+            weights, best_loss = self.fit_single_model(X_transformed, y_bag)
         
-        return (feature_idx, weights), best_loss
+        return (feature_idx, weights), best_loss, nonlinear_feature_idx
     
     def fit(self, X, y):
         results = Parallel(n_jobs=self.n_jobs)(
             delayed(self.fit_single_model_wrapper)(X, y, i) 
             for i in range(self.num_models)
         )
-        self.models, self.validation_error = zip(*results)
+        self.models, self.validation_error, self.feature_nonlinear_index = zip(*results)
     
     def predict_proba(self, X):
         probas = []
-        for feature_idx, weights in self.models:
+        for (feature_idx, weights), nonlinear_idx in zip(self.models, self.feature_nonlinear_index):
             X_subset = X[:, feature_idx]
             X_transformed = self.apply_polynomial_features(X_subset)
+            if nonlinear_idx is not None:
+                X_transformed = X_transformed[:, nonlinear_idx]
             probas.append(self.sigmoid(X_transformed @ weights))
         return np.mean(probas, axis=0)
             
