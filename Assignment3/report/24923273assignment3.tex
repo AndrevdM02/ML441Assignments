@@ -22,6 +22,8 @@
 
 \newacronym{fp}{FP}{false positive}
 \newacronym{fn}{FN}{false negative}
+\newacronym{fna}{FNA}{fine needle aspirate}
+\newacronym{oob}{OOB}{out-of-bag}
 \newacronym{sse}{SSE}{sum of squared error}
 \newacronym{tp}{TP}{true positive}
 
@@ -82,7 +84,7 @@ The generic learning algorithm of gradient descent is represented by Algorithm \
     \end{algorithmic}
 \end{algorithm}
 
-\subsection{Logistic Regression}
+\subsection{Logistic Regression} \label{section: logistic_regression_background}
 
 The logistic regression model was first introduced by David Cox in 1958 as a method to perform binary
 classification \cite{logistic_regression_ref}. Cox specifically designed the logistic regression
@@ -141,26 +143,28 @@ The equation used to represent the error signal used in the gradient descent opt
 of the logistic regression model is as follows.
 \begin{equation}
     \delta(\mathcal{D}, w_j) = \sum_{i=1}^{n} \left((y_i - \mathbb{M}_{\textbf{w}}(\textbf{d}_i)) \mathbb{M}_{\textbf{w}}(\textbf{d}_i)
-                                    (1-\mathbb{M}_{\textbf{w}}(\textbf{d}_i)) d_{j,i}\right) \label{eq: error_signal}
+                                    (1-\mathbb{M}_{\textbf{w}}(\textbf{d}_i)) d_{i,j}\right) \label{eq: error_signal}
 \end{equation}
-where $w_j$ is the $j$-th weight of the logistic regression model.
+where $w_j$ is the $j$-th weight of the logistic regression model and $d_{i,j}$ is the value of the $j$-th
+feature for the $i$-th instance of the training dataset.
 
 The equation used to update the weights of the logistic regression model by use of the gradient descent optimisation algorithm
 is as follows.
 \begin{equation}
     w_j = w_j + \eta \sum_{i=1}^{n} \left((y_i - \mathbb{M}_{\textbf{w}}(\textbf{d}_i)) \mathbb{M}_{\textbf{w}}(\textbf{d}_i)
-                            (1-\mathbb{M}_{\textbf{w}}(\textbf{d}_i)) d_{j,i}\right) \label{eq: weight_update}
+                            (1-\mathbb{M}_{\textbf{w}}(\textbf{d}_i)) d_{i,j}\right) \label{eq: weight_update}
 \end{equation}
 where $\eta$ is the learning rate.
 
 The logistic regression model is quite robust to noise and outliers in the dataset. However, the logistic
 regression can not handle missing values and sensitive to imbalanced classes. Additionally, the logistic
 regression model requires categorical features to be encoded into numerical representation by either the
-ordinal encoded or the one hot encoded technique and the data needs to be scaled or normalised. The logistic
-regression also assumes a linear relationship between the descriptive features, where the actual relationship
-between descriptive features might be non-linear.
+ordinal encoded or the one hot encoded technique and the data needs to be scaled or normalised. Feature subset
+selection also applies, as logistic regression tends to overfit on data with a large number of features.
+The logistic regression also assumes a linear relationship between the descriptive
+features, where the actual relationship between descriptive features might be non-linear.
 
-\subsection{Basis Functions}
+\subsection{Basis Functions} \label{section: basis_functions_background}
 
 Basis functions are non-linear elements which transforms the linear inputs to the logistic regression
 into non-linear represntations, while the model itself remains linear in terms of the weights \cite{basis_fun_ref}.
@@ -204,11 +208,43 @@ Approaches used to create these diverse models are
 \end{itemize}
 An ensemble that contains only one type of model is called a homogeneous ensemble.
 
+Ensemble methods usually use one of the voting schemes that follow to aggregate individual
+predictions \cite{Voting_ref}.
+\begin{itemize}
+    \item Majority voting: This method counts the predictions from each model in the ensemble and selects the class with the most votes as the final output.
+    \item Weighted voting: This variant of majority voting assigns a weight to the vote of each model in the ensemble based on the performance or importance of the model.
+            Models with a higher weight has more influence on the final prediction.
+    \item Soft voting: This method is preferred when the output of a model produces probabilities over all classes. The ensemble averages these probabilities to make a final prediction. 
+\end{itemize}
+
 \subsection{Bootstrap Aggregating}
 
 Bootstrap aggregating, also know as bagging, was first introduced by Leo Breiman, in 1996, as a method
 used to generate a diverse set of models to produce an aggregated model \cite{Bagging_ref}. This diverse
 set of models is formed by training different models on a subset of the original data.
+
+Datasets that differ from one another are created by use of the bootstrapping technique, where
+the original dataset is sampled with replacement. The datasets that results from this are the same
+size as the original dataset but contains different instances, where duplicates of instances
+may be present in the same dataset. This variation enables each dataset to introduce unique
+patterns, which helps create a diverse set of models in the ensemble.
+
+A validation set can be created from the dataset with the observations that was not included
+in the bootstrap sample. The error obtained when this validation set is used to prevent the
+models from overfitting to the training data is known as the \acrfull{oob} error estimation.
+
+The equation of the probability that a specific instance is included in a bootstrap sample is as follows
+\begin{align*}
+    P(x \in \mathcal{D}_m) &= 1 - \left(1 - \frac{1}{n}\right)^2 \\
+    P(x \in \mathcal{D}_m) &\approx 1 - e^{-1} \\
+    P(x \in \mathcal{D}_m) &\approx 0.6322 \tag{10}
+\end{align*}
+where $\mathcal{D}_m$ is the training dataset used by the $m$-th model in the ensemble.
+On average less than $\frac{2}{3}$ of the instances will appear in a bootstrap sample.
+This phenomenon could lead to problems when the original dataset is small, as some instances
+may never be seen in the ensemble. To address the issue of instances that may never be seen in the ensemble,
+either the size of the bag or the number of models in the ensemble needs to be increased.
+However, both approaches lead to an increase in the computational complexity of the ensemble.
 
 \subsection{Performance Metrics} \label{section: Perf_Metrics_background}
 
@@ -261,11 +297,214 @@ datasets.
 
 \section{Implementation} \label{section: Implementation}
 
+This section provides the approach taken to implement both the linear logistic regression
+ensemble model and the non-linear logistic regression ensemble model.
+
+\subsection{Linear Logistic Regression Ensemble} \label{section: LLRE}
+
+The linear logistic regression model is implemented as described in Section \ref{section: logistic_regression_background}.
+The logistic regression is then used to create a homogeneous ensemble of linear logistic regression models to enhance
+predictive accuracy and robustness and the ensemble uses a soft voting scheme to make predictions.
+
+Each model in the ensemble is trained on different subsets of the dataset generated
+through bootstrapping. Additionally, a random set of features is selected from the
+original dataset for each model, which further enhances diversity within the ensemble and mitigates the possibility of the
+linear logistic regression models overfitting to the training dataset as the models are all constructed on diverse feature subsets.
+
+This combination of bootstrapping and feature randomness allows the ensemble to capture a wider range of patterns, which
+improves the overall predictive performance of the ensemble on imbalanced datasets, as individual predictions aggregate through
+a soft voting scheme to produce a final output.
+
+An \acrshort{oob} validation set is also constructed to ensure that the models don't overfit on the training data.
+
+The implementation of the linear logistic regression model is provided in Algorithm \ref{alg: LogisticRegressionEnsemble}.
+\begin{algorithm}[H]
+    \caption{Linear Logistic Regression Ensemble Learning Algorithm}
+    \label{alg: LogisticRegressionEnsemble}
+    \begin{algorithmic}[1]
+        \State Preprocess the training set $D_T$ as necessary
+        \State Set parameters: $num\_models$, $\eta$, $iterations$, $bag\_size$, $num\_features$, $patience$
+        \For{each model $m \in [1, \ldots, num\_models]$}
+            \State Let $n_B = \lfloor bag\_size \times n \rfloor$
+            \State Sample $D_T$ with replacement to create a bagged dataset $D_B$ with the size of $n_B$
+            \State Create a validation set $D_B'$ from the instances not included in $D_B$ for out-of-bag error estimation with $n_B'$ observations
+            \State Randomly select a subset of features $F_S$ from $D_B$
+            \State Use only the randomly selected features to create the subsets $D_S = D_B[:, F_S]$ and $D_S' = D_B'[:, F_S]$
+            \State Add a bias term of 1 to all observations in $D_S$ and $D_S'$
+            \State Initialise $patience\_counter$ = 0 and weights $\textbf{w}_m$ for model $m$
+            \State $best\_error = \infty$
+            \For{iteration $t = 1$ to $iterations$}
+                \State Compute the error signal: $\boldsymbol{\delta}_m(D_S, \textbf{w}_m) = \hfill$ $\sum_{i=1}^{n_B} \left((y_i - \mathbb{M}_{\textbf{w}_m}(\textbf{d}_i)) \mathbb{M}_{\textbf{w}_m}(\textbf{d}_i)
+                                    (1-\mathbb{M}_{\textbf{w}_m}(\textbf{d}_i)) \textbf{d}_i\right)$ for $\hfill$ $\textbf{d}_i \in D_S$
+                \State Update weights: $\textbf{w}_m = \textbf{w}_m + \eta \cdot \boldsymbol{\delta}_m(D_S, \textbf{w}_m)$
+                \State Compute out-of-bag error: $L_2(\mathbb{M}_{\textbf{w}_m}, D'_S) = \hfill $ $\sum_{i=1}^{n_B'}(y' - \mathbb{M}_{\textbf{w}}(\textbf{d}'_i))^2$ for $\textbf{d}_i' \in D_S'$
+                \If{$error < best\_error$}
+                    \State $best\_error = error$
+                    \State $\textbf{w}_m^{best} = \textbf{w}_m$
+                    \State $patience\_counter = 0$
+                \Else
+                    \State $patience\_counter = patience\_counter + 1$
+                \EndIf
+                \If{$patience\_counter$ $\geq$ $patience$}
+                    \State \textbf{break}
+                \EndIf
+            \EndFor
+            \State Store model $(\textbf{w}_m^{best}, F_S)$ in the ensemble
+        \EndFor
+    \end{algorithmic}
+\end{algorithm}
+
+\subsection{Non-Linear Logistic Regression Ensemble}
+
+The non-linear logistic regression ensemble is implemented as described in Section \ref{section: LLRE}
+with the addition of basis functions as described in Section \ref{section: basis_functions_background}.
+The transformation of the linear dataset to a non-linear dataset is given in Algorithm \ref{alg: TransformDataset}.
+\begin{algorithm}[H]
+    \caption{Transform The Linear Dataset To A Non-Linear Dataset}
+    \label{alg: TransformDataset}
+    \begin{algorithmic}[1]
+        \Function{GeneratePolynomialTerms}{$n\_features$, $\hfill$ $polynomial\_degree$}
+            \State Initialize empty list of terms $T$
+            \For{$i \in [1, \ldots, n\_features]$}
+                \State Add single feature term $[i]$ to $T$
+            \EndFor
+            \For{$degree = 2$ to $polynomial\_degree$}
+                \For{$i \in [1, \ldots, n\_features]$}
+                    \State Add self-interaction term $[i, \ldots, i]$ of length $degree$ to $T$
+                \EndFor
+                \If{$degree > 1$}
+                    \For{$i \in [1, \ldots, n\_features]$}
+                        \For{$j \in [i+1, \ldots, n\_features]$}
+                            \State Add interaction term $[i, \ldots, i, j]$ of $\hfill$ length $degree$ to $T$
+                            \If{$degree > 2$}
+                                \State Add reverse interaction term $\hfill$ $[j, \ldots, j, i]$ of length $degree$ to $T$
+                            \EndIf
+                        \EndFor
+                    \EndFor
+                \EndIf
+            \EndFor
+            \State \Return $T$
+        \EndFunction
+    \end{algorithmic}
+\end{algorithm}
+
+A random subset of the generated basis functions is selected to mitigate the challenge
+described in Section \ref{section: basis_functions_background}. This approach addresses the need
+for prior knowledge of the non-linear relationships in the dataset, which would otherwise be required to
+select appropriate basis functions. Each logistic regression model is then trained on different subset
+of features, which is first transformed to be non-linear by use of the $polynomial\_degree$ parameter.
+A random subset of this newly created non-linear feature set is then selected to ensure to ensure greater
+model diversity and to capture a broader range of patterns within the data, which enhances the overall predictive
+performance of the ensemble.
+The implementation of the non-linear logistic regression model is provided in Algorithm \ref{alg: NonLinearLogisticRegressionEnsemble}.
+
+\begin{algorithm}[H]
+    \caption{Non-linear Logistic Regression Ensemble Learning Algorithm}
+    \label{alg: NonLinearLogisticRegressionEnsemble}
+    \begin{algorithmic}[1]
+        \State Preprocess the training set $D_T$ as necessary
+        \State Set parameters: $num\_models$, $\eta$, $iterations$, $bag\_size$, $num\_features$, $patience$, $num\_nl\_features$, $\hfill$ $polynomial\_degree \geq 2$
+        
+        \For{each model $m \in [1, \ldots, num\_models]$}
+            \State Let $n_B = \lfloor bag\_size \times n \rfloor$
+            \State Sample $D_T$ with replacement to create a bagged dataset $D_B$ with size $n_B$
+            \State Create validation set $D_B'$ from instances not in $D_B$ for out-of-bag error estimation
+            \State Randomly select feature subset $F_S$ from $D_B$
+            \State Use only the randomly selected features to create the subsets $D_S = D_B[:, F_S]$ and $D_S' = D_B'[:, F_S]$
+            
+            \State $terms = \hfill$ \Call{GeneratePolynomialTerms}{$|F_S|$,$\hfill$ $polynomial\_degree$}
+            \State Transform $D_S$ and $D_S'$ using polynomial terms in $terms$
+            \State $n\_nl = \lfloor num\_nl\_features \times |terms| \rfloor$
+            \State Randomly select $n\_nl$ terms from transformed features
+            \State Update $D_S = D_S[:,n\_nl]$ and $D_S' = D_S'[:,n\_nl]$ 
+            
+            \State Add bias term of 1 to all observations in $D_S$ and $D_S'$
+            \State Initialize $patience\_counter = 0$ and weights $\textbf{w}_m$ for model $m$
+            \State $best\_error = \infty$
+            
+            \For{iteration $t = 1$ to $iterations$}
+                \State Compute the error signal: $\boldsymbol{\delta}_m(D_S, \textbf{w}_m) = \hfill$ $\sum_{i=1}^{n_B} \left((y_i - \mathbb{M}_{\textbf{w}_m}(\textbf{d}_i)) \mathbb{M}_{\textbf{w}_m}(\textbf{d}_i)
+                                    (1-\mathbb{M}_{\textbf{w}_m}(\textbf{d}_i)) \textbf{d}_i\right)$ for $\hfill$ $\textbf{d}_i \in D_S$
+                \State Update weights: $\textbf{w}_m = \textbf{w}_m + \eta \cdot \boldsymbol{\delta}_m(D_S, \textbf{w}_m)$
+                \State Compute out-of-bag error: $L_2(\mathbb{M}_{\textbf{w}_m}, D'_S) = \hfill $ $\sum_{i=1}^{n_B'}(y' - \mathbb{M}_{\textbf{w}}(\textbf{d}'_i))^2$ for $\textbf{d}_i' \in D_S'$
+                
+                \If{$error < best\_error$}
+                    \State $best\_error = error$
+                    \State $\textbf{w}_m^{best} = \textbf{w}_m$
+                    \State $patience\_counter = 0$
+                \Else
+                    \State $patience\_counter = patience\_counter + 1$
+                \EndIf
+                
+                \If{$patience\_counter \geq patience$}
+                    \State \textbf{break}
+                \EndIf
+            \EndFor
+            \State Store model $(\textbf{w}_m^{best}, F_S, terms)$ and $n\_nl$ in ensemble
+        \EndFor
+    \end{algorithmic}
+\end{algorithm}
+
 \section{Empirical Procedure} \label{section: Empeirical Procedure}
+
+This section of the report outlines the systematic approach used to evaluate the performance of the 
+linear logistic regression ensemble model and non-linear logistic regression ensemble model
+across multiple binary classification tasks. Additionally, this section provides the approach
+used to process each dataset to ensure optimal performance of the ensemble models and the performance
+metrics used to investigate the influence of the number of members in the
+ensembles, the number of randomly selected features, and the size of the bags.
+The section provides the control parameters used to construct each
+linear and non-linear logistic regression ensemble model for each of the binary classification tasks,
+the experimental setup and the statistical significance tests used to ensure the reliability and statistical
+soundness of the results.
 
 \subsection{Performance Metrics}
 
+Accuracy is used to investigate the influence of the number of members in the
+ensembles, the number of randomly selected features, and the size of the bags if the
+original dataset contains balanced classes. If the original dataset contains imbalanced
+classes, the F1-score metric is used to investigate the influence of the number of members in the
+ensembles, the number of randomly selected features, and the size of the bags.
+
 \subsection{Data Preprocessing}
+
+The data has to be preprocessed to ensure optimal and reliable results on each dataset from both the linear
+logistic regression ensemble model and the non-linear logistic regression ensemble model.
+The procedures to preprocess each dataset differ. Therefore, each dataset must be explored separately and
+processed into an optimal form to use in the ensemble models.
+
+\subsubsection{Breast Cancer Dataset}
+
+The breast cancer dataset contains numerical features computed from a digitised image
+of a \acrfull{fna} of a breast mass, that describe characteristics of the cell nuclei present in the image \cite{Breast_cancer_ref}.
+The dataset includes a binary target feature labeled `diagnosis,' which indicates whether the tumor is
+benign or malignant, denoted by `B' or `M', respectively. In total, the dataset consists of 32 features
+and 569 observations.
+
+The dataset contains a unique identification feature `id' that is removed from the dataset, as it does not provide
+meaningful infomation. There are no missing values present in the dataset and the classes are imbalanced.
+
+All descriptive features that remain are numerical and normalised to a range of $[-1,1]$. The equation used to
+normalise the descriptive features is as follows
+\begin{equation}
+    d_{i,j}' = \frac{2\left(d_{i,j} - min(\textbf{d}_j)\right)}{max(\textbf{d}_j) - min(\textbf{d}_j)} - 1 \label{eq: normalisation}
+\end{equation}
+where $\textbf{d}_j$ is a vector of all values of the $j$-th feature, $min(\textbf{d}_j)$ and $max(\textbf{d}_j)$
+is the minimum and maximum values of the $j$-th feature, respectively and $d_{i,j}'$ is the normalised value
+of $d_{i,j}$ within the range $[-1,1]$.
+
+The target feature `diagnosis' is encoded so that each instance of `M' is represented as a zero and each instance
+of `B' is represented as one. Since the dataset has imbalanced classes, the F1-score serves as the performance
+metric to evaluate the influence of the number of ensemble members, the number of randomly selected features,
+and the bag sizes.
+
+\subsubsection{Ionosphere Dataset}
+
+\subsubsection{Diabetes Dataset}
+
+\subsubsection{Banana Quality Dataset}
+
+\subsubsection{Spiral Dataset}
 
 \subsection{Experimental Setup} \label{section: experimental_setup_emp}
 
@@ -282,10 +521,10 @@ datasets.
                         & \textbf{\textit{eta}} & \textbf{\textit{epochs}} & \textbf{\textit{patience}}\\
             \hline
             \textbf{\textit{Breast Cancer}} & 0.00239 & 10678 & 6 \\
-            \textbf{\textit{Diabetes Dataset}} & 0.01121 & 18690 & 9\\
+            \textbf{\textit{Ionosphere}} & 0.00012 & 9809 & 6\\
+            \textbf{\textit{Diabetes}} & 0.01121 & 18690 & 9\\
             \textbf{\textit{Banana Quality}}  & 0.00023 & 4338 & 5 \\
-            \textbf{\textit{Water Quality}} & 0.00601 & 25484 & 9 \\
-            \textbf{\textit{Spiral Dataset}} & 0.06708 & 17335 & 7\\
+            \textbf{\textit{Spiral}} & 0.06708 & 17335 & 7\\
             \hline
         \end{tabular}
     \end{center}
@@ -295,18 +534,18 @@ datasets.
 \begin{table}[h!]
     \caption{Non-Linear Logistic Regression Control Parameters}
     \begin{center}
-        \begin{tabular}{|c||c|c|c|c|}
+        \begin{tabular}{|c||c|c|c|c|c|}
             \hline
-            \textbf{Dataset}&\multicolumn{4}{|c|}{\textbf{Control Parameters}} \\
+            \textbf{Dataset}&\multicolumn{5}{|c|}{\textbf{Control Parameters}} \\
             % \textbf{Max depth}
-            \cline{2-5}
-                        & \textbf{\textit{eta}} & \textbf{\textit{epochs}} & \textbf{\textit{patience}} & \textbf{\textit{\% poly}}\\
+            \cline{2-6}
+                        & \textbf{\textit{eta}} & \textbf{\textit{epochs}} & \textbf{\textit{patience}} & \textbf{\textit{poly}} & \textbf{\textit{\% poly}}\\
             \hline
-            \textbf{\textit{Breast Cancer}} & 0.00011 & 7290 & 10 & 40\\
-            \textbf{\textit{Diabetes Dataset}} &  &  &  & \\
-            \textbf{\textit{Banana Quality}}  &  &  &  & \\
-            \textbf{\textit{Water Quality}} &  &  &  & \\
-            \textbf{\textit{Spiral Dataset}} &  &  &  & \\
+            \textbf{\textit{Breast Cancer}} & 0.00013 & 3812 & 5 & 3 & 50\\
+            \textbf{\textit{Ionosphere}} & 0.0001 & 2797 & 10 & 3 & 70\\
+            \textbf{\textit{Diabetes}} & 0.00783 & 1000 & 6 & 3 & 80\\
+            \textbf{\textit{Banana Quality}} & 0.01099 & 5054 & 5 & 3 & 80\\
+            \textbf{\textit{Spiral}} & 0.00011 & 8755 & 5 & 4 & 60\\
             \hline
         \end{tabular}
     \end{center}
@@ -324,9 +563,11 @@ datasets.
     \bibitem{Bagging_ref} L. Breiman "Bagging predictors." In: Machine learning (1996).
     \bibitem{gradient_descent_ref} A. Cauchy "Méthode générale pour la résolution des systemes d’équations simultanées." In: Comp. Rend. Sci. Paris (1847).
     \bibitem{logistic_regression_ref} D. R. Cox "The regression analysis of binary sequences." In: Journal of the Royal Statistical Society Series B: Statistical Methodology (1958).
-    \bibitem{basis_fun_ref} J. D. Kelleher, B. Mac Namee, and A. D'arcy "Fundamentals of machine learning for predictive data analytics: algorithms, worked examples, and case studies." In: MIT press (2020).
+    \bibitem{basis_fun_ref} A. D'arcy, B. Mac Namee, and J. D. Kelleher "Fundamentals of machine learning for predictive data analytics: algorithms, worked examples, and case studies." In: MIT press (2020).
     \bibitem{F1-score_ref} B. J. Erickson, and K. Felipe "Magician’s corner: 9. Performance metrics for machine learning models." In: Radiology: Artificial Intelligence 3(2021).
     \bibitem{Ensemble_ref} M. A. Ganaie, M., Hu, A. K. Malik, M. Tanveer and P. N. Suganthan "Ensemble deep learning: A review." In: Engineering Applications of Artificial Intelligence (2022).
+    \bibitem{Breast_cancer_ref} O. Mangasarian, W. Wolberg, N. Street, and W. Street "Breast Cancer Wisconsin (Diagnostic)" In: UCI Machine Learning Repository (1993).
+    \bibitem{Voting_ref} Z. H. Zhou "Ensemble methods: foundations and algorithms." In: CRC press (2012).
 \end{thebibliography}
 
 \printglossary[type=\acronymtype]
