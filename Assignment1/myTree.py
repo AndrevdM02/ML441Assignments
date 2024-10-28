@@ -33,9 +33,11 @@ class ClassificationTree:
 
         if self.class_weights is None:
             random.seed(self.random_state)
-            X_train, X_val, y_train, y_val = train_test_split(X, y, test_size=self.data_split_size, random_state=self.random_state)
-            y_train = pd.Series(y_train)
-            y_val = pd.Series(y_val)
+            # X_train, X_val, y_train, y_val = train_test_split(X, y, test_size=self.data_split_size, random_state=self.random_state)
+            # y_train = pd.Series(y_train)
+            # y_val = pd.Series(y_val)
+            X_train = X
+            y_train = y
             # Compute class weights if not provided
             class_counts = y_train.value_counts()
             total_samples = len(y_train)
@@ -50,7 +52,7 @@ class ClassificationTree:
         self.classes_ = np.unique(np.asarray(y))
 
         self.root = self.induce_tree(X_train, y_train, default_class=self.majority_class(y_train), depth=0)
-        self.prune_tree(X_val, y_val)
+        # self.prune_tree(X_val, y_val)
         # print("Itteration done")
         return self
 
