@@ -125,7 +125,7 @@ not normally distributed.
 
 Additionally considering more advanced imputation methods that accounts for the relationships between
 the descriptive features can yield better results. This is especially the case for when the data structure is complex.
-A k-nearest kneighbours (KNN) classifier technique can be used to identify the k-nearest instances to the observation with a
+A k-nearest neighbours (KNN) classifier technique can be used to identify the k-nearest instances to the observation with a
 missing value based on the other features similarity.
 The missing value is then imputed using the mean or median of the feature values from the k-nearest instances, which often results
 in a more robust and representative imputed value.
@@ -213,7 +213,7 @@ TODO
 
 \subsection*{Question 1}
 
-(e). TODO
+e
 
 \subsection*{Question 2}
 
@@ -231,11 +231,33 @@ TODO
 
 \subsection*{Question 4}
 
+The first inductive bias is that the decision boundaries can only be parallel to the axis. The
+consequence of this is that more complex trees are needed if the true decision boundaries are not
+parallel to the axes. This inductive bias can be addressed by using oblique trees.
+
+The second inductive bias is that the tree is induced to overfit the training data. Meaning that
+the tree creates decision boundaries until all of the classes are seperated and achieves a
+perfect score on the training data. The consequence of this inductive bias is that the
+tree generalises poorly to unseen data. This inductive bias can be addressed by either pruning the
+tree while it is being induced or by pruning the induced tree.
+
+The third inductive bias is that if the information gain is maximised, descriptive features with many
+outcomes are favoured higher up in the tree. This inductive bias results into an induced tree with many decision
+rules and trees with high branching factors high up in the tree. This inductive bias can be addressed by using
+the gain ratio criterion.
+
 TODO
 
 \subsection*{Question 5}
 
-TODO
+An oblique tree algorithm would result in the smallest tree structure for this clasification problem,
+as the classification problem represents the classification trees, such as C4.5 and ID3's, inductive bias
+of only creating axis-parallel decision boundaries.
+
+Oblique trees, by contrast, allow splits that are not parallel to any axis, enabling the model to create
+boundaries at arbitrary angles. Fewer nodes are then required to split fully induce the tree to overfit
+on this particular classification task and therefore the tree resulting from the oblique
+tree algorithm would result in the smallest tree.
 
 \subsection*{Question 6}
 
@@ -259,79 +281,152 @@ TODO
 
 \subsection*{Question 1}
 
-TODO
+b
 
 \subsection*{Question 2}
 
-TODO
+b, c
 
 \subsection*{Question 3}
 
-TODO
+b, c, g TODO
+a???
 
 \subsection*{Question 4}
 
-TODO
+The inductive bias of the $k$-nearest neighbour algorithm is instances that have similar descriptive feature values
+also have the same target feature values. Meaning that if two instances are close in terms of their descriptive feature
+values, the $k$-nearest neighbours algorithm assumes that these instances belongs to the same class for classification tasks
+or similar outputs for regression tasks.
+
 
 \subsection*{Question 5}
 
-TODO
+For algorithms like $k$-nearest neighbours that makes use of similarity based learning it is important to
+normalise the input descriptive features so that each descriptive feature has exactly the same range. The
+features should be normalised to the same range as as input features with larger differences in the range
+has a stronger impact on the distance calculations used in the $k$-nearest neighbours. A descriptive
+feature with a range of [1000,100000] will have a much stronger impact on the distance calculation
+than a feature with a range of [10,100]. Therefore these features should be normalised to a specific
+range such as [0,1].
 
 \subsection*{Question 6}
 
-TODO
+The $k$-nearest neighbours algorithm can be used to impute a missing value of a feature by calculating the
+similarity between instances. For an instance that contains a missing value in one of the descriptive
+features, the $k$-nearest neighbours algorithm can be used to examine the $k$ most similar instances
+in the dataset, where the similarity is calculated based on the features that does not contain missing values.
+After the $k$ most similar neighbours of this instance has been found, the missing value is imputed by use of
+the mean or median of the descriptive feature that contains the missing value of these $k$ neighbours for a numerical
+descriptive feature. Conversely for a categorical descriptive feature, the mode of the descriptive feature that contains
+the missing value of the $k$ neighbours are used to impute the missing value.
 
 \subsection*{Question 7}
 
-TODO
+The $k$-nearest neighbour algorithm can be applied to problems with categorical descriptive features.
+The categorical descriptive features should either be one-hot encoded or ordinally encoded to ensure the
+categories are represented in numerical form if they are not already. If the categorical features have been
+one-hot encoded, a variety of distance calculations can be used to calculate the similarity between
+observations such as the Jaccard, Hamming, Manhattan, Euclidean and cosine distance metrics. For
+ordinally encoded features, the similarity between observations can be calculated by use of the Jaccard
+similarity, which calculates the number of features wit the same value.
 
 \subsection*{Question 8}
 
-TODO
+Discuss the consequences of different values for k when k-nearest neigbours is applied to regression problems.
+
+If the number of neighbours, $k$, in the algorithm is small, the algorithm will become sensitive to noise in the
+target feature. The predicted value of an instance can be negatively influenced if $k$ is small and there are
+a few neighbours around a particular instance with an abnormal target value due to noise or outliers. Therefore,
+the outcome may be skewed as there are fewer neigbours to average out the noise.
+
+Conversely, if the number of neighbours, $k$, in the algorithm is large, the predictions of the algorithm will be bad
+as the average of the target features of the $k$-nearest neighbours is calculated and used as the predicted value of the
+instance. Therefore, a larger value of $k$ could lead to an algorithm that underfits the data, failing to capture local
+patterns effectively.
 
 \section*{Section D: Error-based Learning}
 
 \subsection*{Question 1}
 
-TODO
+a
 
 \subsection*{Question 2}
 
-TODO
+d
 
 \subsection*{Question 3}
 
-TODO
+c
 
 \subsection*{Question 4}
 
-TODO
+a, b, g
 
 \subsection*{Question 5}
 
 \subsubsection*{(a)}
 
-TODO
+Yes, normalising or scaling of the target feature is required. This is because the output of the sigmoid
+activation function returns a value in the range $(0,1)$. In the case of a regression problem, the target features should
+be scaled to the range of $(0,1)$ to match the output of the sigmoid activation function. In the case of binary classification,
+the two target classes should be ordinally encoded to 0 and 1, which represent the probability of the observation belonging to class 1.
+If the target features are not scaled, the neuron will always produce a large error signal, which leads to a continuous adjustment of the
+weights, meaning the model would never converge.
 
 \subsubsection*{(b)}
 
-TODO
+Yes, it is prudent to normalise or scale the input features in this scenario. It is not necessary to scale the input
+feature values, but the performance of the model can be improved if the inputs are scaled to the active domain of the
+activation function. For the sigmoid activation function, the active domain is $[-\sqrt{3}, \sqrt{3}]$. This corresponds
+to the parts of the sigmoid function for which weight changes in the input features has a relatively large change
+in output. The values beyond these points would have a very small influence on the weight updates.
 
 \subsubsection*{(c)}
 
-TODO
+Large weights and biases used in the gradient descent optimisation algorithm can lead to premature convergence.
+This occurs because the large weights and biases move to the asymptoic ends of the sigmoid activation function too quickly,
+which leads to extreme output values with associated derivatives being close to zero, meaning the weight updates are
+also close to zero. Absolute values of the weights and biases is also a poor strategy as the active domain of the sigmoid
+activation function is $[-\sqrt{3}, \sqrt{3}]$. If the weights and biases are initialised as only large positive values,
+the activations of the sigmoid activation function will be biased towards the positive end of the sigmoid's active domain.
 
 \subsection*{Question 6}
 
-TODO
+The momentum term is essential to the stochastic gradient descent (SGD) optimisation algorithm, as it smooths
+out the search trajectories and prevents the oscillation of the search trajectories. The idea of the momentum
+term is to average out the weigth changes, thereby ensuring that the search path is in the average downhill
+direction, meaning the search direction does not prematurely change between epochs, ensuring that oscillation
+between search directions does not occur. The momentum term is then simply the previous weight change weighted
+by a scalar value $\alpha$, which is defined as any value between the range of $\alpha \in (0,1)$.
+For larger values of $\alpha$, the more strict the optimisation algorithm becomes of staying on the current search
+path, meaning that more significant evidence is needed to jump over to the other side.
 
 \subsection*{Question 7}
 
-TODO
+This statement is false, because if the net input signal is calculated by use of product units, the single
+neuron can seperate non-linearly separable classes. The mathmatical equation used to calculate the product units
+is as follows.
+\begin{equation}
+    net = \prod_{i=1}^{I} x_{i}^{w_i}
+\end{equation}
+where $net$ is the net input signal, $I$ is the number of input signals, $x_i$ is the $i$-th signal and $w_i$
+is the weight corresponding to the $i$-th input signal. Product units allow for higher-order
+combinations of inputs, having the advantage of increased information capacity. This increased
+information capacity and the product units allows the single neuron to separate non-linearly
+separable data.
 
 \subsection*{Question 8}
 
-TODO
+The main advantages of using the scaled conjugate gradient optimisation algorithm instead of
+the gradient descent optimisation algorithm is that the model converges faster due to the
+fast quadratic convergence of Newton's method. Additionally, the scaled conjugate gradient
+optimisation algorithm is less susceptible to the local minima as the algorithm restarts every
+$n_w$ steps if there is no reduction in the test error, where $n_w$ is the total number of
+weights and biases. Lastly, the scaled conjugate gradient optimisation algorithm performs
+automatic step size adjustment, eliminating the need for the learning rate used in the gradient
+descent optimisation algorithm, meaning there is less manual control parameters of which
+the optimal values should be found for.
 
 \subsection*{Question 9}
 
@@ -343,11 +438,42 @@ TODO
 
 \subsection*{Question 11}
 
-TODO
+A linear logistic regression model can not separate the two classes. However a non-linear logistic regression
+model will be able to seperate the two classes.
+
+The non-linear logistic regression model can capture the underlying relationship between the two
+descriptive features $x_1$ and $x_2$ if they are transformed by use of sine and cosine as basis functions. Therefore
+the non-linear logistic regression model would become the following.
+\begin{equation}
+    P(y=1|\boldsymbol{x}_i) = \frac{1}{1 + e^{-(w_0 + w_1 \cdot \sin(x_{i,1}) + w_2 \cdot \cos(x_{i,1}) + w_3 \cdot \sin(x_{i,2}) + w_4 \cdot \cos(x_{i,2}))}}
+\end{equation}
+where $\boldsymbol{x}_i$ is a vector containing all of the descriptive features of the $i$-th observation, $w_0$ is
+the bias and $P(y=1|\boldsymbol{x}_i)$ is the probability of the $i$-th observation bolonging to class 1.
+
+Therefore by utilising these basis functions to capture the relationship between the two descriptive features,
+will the non-linear logistic regression be able to separate these classes.
 
 \subsection*{Question 12}
 
-TODO
+Consider the classification problem depicted in the figure below. Explain in detail how logistic regression
+can be used to separate the classes.
+
+Logistic regression can separate these classes, by making use of a multinomial logistic regression model, which
+is designed as an extension of the normal logistic regression model to handle multiclass classification problems.
+
+The multinomial logistic regression model is constructed by making use of 5 one versus all logistic regression models
+for this scenario. These one-versus-all models distinguishes between one class of the target feature and all the other
+classes of the target feature. The 5 one-versus-all models would then be the following:
+\begin{itemize}
+    \item Logistic regression model 1: classify class 0 against the other classes
+    \item Logistic regression model 2: classify class 1 against the other classes
+    \item Logistic regression model 3: classify class 2 against the other classes
+    \item Logistic regression model 4: classify class 3 against the other classes
+    \item Logistic regression model 5: classify class 4 against the other classes
+\end{itemize}
+This multinomial logistic regression model will then construct 4 decision boundaries combined from each
+models decision boundary to seperated these classes into 5 segments, where each segment contains all the
+observations of one class.
 
 \subsection*{Question 13}
 
@@ -359,13 +485,20 @@ TODO
 
 \subsection*{Question 15}
 
-TODO
+A neural network that deploys a sigmoid activation function as the activation function in the hidden layer, as
+opposed to using the linear activation function as the activation function in the hidden layer, will
+result in less hidden units for a highly non-linear mapping. This is because the linear activation
+function only perform linear transformations, which limits the model's capacity to capture non-linear
+patterns and more units in the hidden layer would have to be added for the model to capture these non-linear patterns.
+Conversly, the sigmoid activation function allows the hidden layer to capture non-linear patterns, which
+will result in less units that should be used in the hidden layer to achieve the same generalisation
+performance as the linear activation function deployed in the hidden layer with more hidden units.  
 
 \section*{Section E: Unsupervised Learning}
 
 \subsection*{Question 1}
 
-TODO
+a, d
 
 \subsection*{Question 2}
 
