@@ -169,7 +169,7 @@ and some stocks may exhibit seasonal patterns, such as retail stocks that perfor
 The main implications are that the models can become unstable over time, the model needs to consantly learn and
 the models might overfit past historical patterns.
 
-The first implications is that the model may become unstable overtime and lead to invalid predictionsm, as the
+The first implications is that the model may become unstable overtime and lead to invalid predictions, as the
 relationships between the descriptive features and target feature may change over time. This makes previously
 learned patterns unreliable and justifies the need for the second implication, which is that the model
 needs to consantly be updated. The model has to incorporate some form of continuous learning or regular retraining
@@ -246,7 +246,10 @@ outcomes are favoured higher up in the tree. This inductive bias results into an
 rules and trees with high branching factors high up in the tree. This inductive bias can be addressed by using
 the gain ratio criterion.
 
-TODO
+The last inductive bias is that decision tree algorithm prefers to induce shorter trees \cite{sectionB-Q4}. The consequence
+of this inductive bias is that shoter trees might note always capture the complex relationships between
+descriptive features and the target feature. This inductive bias can be addressed by using ensemble techniques
+such as boosting.
 
 \subsection*{Question 5}
 
@@ -289,8 +292,7 @@ b, c
 
 \subsection*{Question 3}
 
-b, c, g TODO
-a???
+b, c, g
 
 \subsection*{Question 4}
 
@@ -298,7 +300,6 @@ The inductive bias of the $k$-nearest neighbour algorithm is instances that have
 also have the same target feature values. Meaning that if two instances are close in terms of their descriptive feature
 values, the $k$-nearest neighbours algorithm assumes that these instances belongs to the same class for classification tasks
 or similar outputs for regression tasks.
-
 
 \subsection*{Question 5}
 
@@ -333,8 +334,6 @@ similarity, which calculates the number of features wit the same value.
 
 \subsection*{Question 8}
 
-Discuss the consequences of different values for k when k-nearest neigbours is applied to regression problems.
-
 If the number of neighbours, $k$, in the algorithm is small, the algorithm will become sensitive to noise in the
 target feature. The predicted value of an instance can be negatively influenced if $k$ is small and there are
 a few neighbours around a particular instance with an abnormal target value due to noise or outliers. Therefore,
@@ -349,7 +348,7 @@ patterns effectively.
 
 \subsection*{Question 1}
 
-a
+c
 
 \subsection*{Question 2}
 
@@ -430,11 +429,29 @@ the optimal values should be found for.
 
 \subsection*{Question 9}
 
-TODO
+The first main advantages of using population-based meta-heuristics to train neural networks is that the algorithm
+is less susceptible to getting trapped in the local minima, meaning that the population-based approach
+can better explore the entire search space \cite{sciencedirect_metaheuristics}.
+
+Another main advantage is that the population-based meta-heuristics does not require the caluclation of any gradients
+or derivatives, which makes the construction or fine-tuning of the neural network model less computationally intensive
+per iteration compared to backpropagation.
+
+The last main advantage is that the population-based meta-heuristics algorithms is more robust to noise and missing
+values in the training data, than the classical optimisation techniques such as gradient descent.
 
 \subsection*{Question 10}
 
-TODO
+Active learning in neural networks is driven by the need to enhance training efficiency and improve model
+generalisation. The first rationale behind active learning is to efficiently use the data. This rationale
+is based on active learning that allows the neural network to select the most informative examples in the
+dataset for training. Less data is then used to construct the model, which leads to faster convergence and
+training time.
+
+The second rationale behind active learning is to improve the model's generalisation ability to unseen data.
+This is achieved by by avoiding redundant information and selecting examples that contain enough information
+to learn a task. By concentrating on diverse and informative samples, the model becomes more robust, enhancing
+its performance on new, unseen inputs.
 
 \subsection*{Question 11}
 
@@ -590,43 +607,134 @@ TODO
 
 \subsection*{Question 1}
 
-TODO
+b, d
 
 \subsection*{Question 2}
 
-TODO
+The main rationale behind ensemble learning is to combine multiple learners or models that each provide slightly
+different results on the same dataset. Since different models can perform differently on various data patterns,
+aggregating the knowledge of all of the learners will result in a better overall performance compared to a
+single model. Although, this is only true if the models used in the ensemble are all different in their predictive behavior.
 
 \subsection*{Question 3}
 
-TODO
+No single machine learning algorithm is universally the most accurate due to the influence of its inductive bias.
+While combining experts of the same type, known as a mixture of homogeneous experts, can improve accuracy by reducing
+the adverse effects of this bias, the overall predictive capability remains constrained by the inductive bias of the
+individual algorithm used in the mixture.
+
+Conversely, a combination of different machine learning algorithms, which is referred to as a mixture of heterogeneous experts,
+is used to take advantage of each of the strenghts, and to reduce the adverse effects of the inductive
+biases of each algorithm used in the ensemble.
+
+As a result, heterogeneous mixtures of experts are expected to perform better than homogeneous mixtures
+of experts, as the heterogeneous model has the ability to combine different inductive biases that allows the
+ensemble to make more informed predictions.
 
 \subsection*{Question 4}
 
-TODO
+AdaBoost is an ensemble that consists of many weak learners all induced to underfit the data. All of these weak learners
+are then assigned a voting weight in order to create an accurate ensemble model. This weight is calculated by making
+use of the training error-rate of the model. The voting weight is then calculated by use of
+the following equation.
+\begin{equation}
+    \alpha_t = 0.5 \times \ln \left( \frac{1 - \epsilon_t}{\epsilon_t} \right) \label{eq: voting weight}
+\end{equation}
+where $\epsilon_t$ and $\alpha_t$ is the error-rate and the voting weight of the $t$-th model in the ensemble
+respectively.
+
+As seen in equation \ref{eq: voting weight}, the higher the error-rate, the lower the voting weight of the model will be
+and the lower the error-rate, the higher the voting weight of the model will be. The final decision or prediction of the
+ensemble is then the sign of the following equation.
+\begin{equation}
+    \hat{y} = sign \left( \sum_{t1}^{T} \alpha_t h_t(x)\right) \label{eq: pred_ada}
+\end{equation}
+where $\hat{y}$ is the final prediction of the ensemble, $T$ is the number of models in the ensemble and $h_t(x)$
+is the $t$-th predicted label of the $t$-th model in the ensemble. As seen in equation \ref{eq: pred_ada}, the
+lower the voting weight is, the smaller the influence the model has on the final prediction. Therefore the weighted
+vote is impacted by how well the model performs.
+
+Since each model is designed to underfit the data, some may focus on features with minimal predictive power or those
+containing significant noise. By incorporating voting weights, AdaBoost reduces the impact of these less effective
+models on the overall ensemble, allowing the more accurate models to dominate the decision-making process. This
+weighted voting mechanism enhances the model's robustness and accuracy, ultimately leading to better generalisation
+on unseen data.
 
 \subsection*{Question 5}
 
-TODO
+The $k$-nearest neighbours algorithm is very dependend on the value of $k$ and there is no universally correct
+value of what the value of $k$ should be. Observations in the data may be classified correctly for one value
+of $k$ and incorrectly for a different value of $k$. This problem is then addressed by creating an ensemble that
+uses different values of $k$, which makes the overall performance of the ensemble model more robust and allows for
+the model to generalise better to unseen data.
+
+Different values of $k$ can also address the bias-variance dilemma. Small values of $k$ leads to a low bias,
+but a high variance, which makes the model sensitive to any noise or outliers in the dataset of any small
+changes in the dataset. Conversely, a larger value for $k$ leads to low variance, but an increase in bias,
+which results in smoother decision boundaries. The ensemble of $k$-NN models, will achieve a greater balance
+between bias and variance if the $k$-NN models in the ensemble contains different values of $k$. This improves the
+model's overall performance and reliability.
 
 \subsection*{Question 6}
 
-TODO
+Each tree in the random forest model is constructed from a random bootstrap sample, also known as sampling with
+replacement, from the original dataset. Within each of these bootstrap samples, a random subset of features, with a
+fixed size, is selected to account for more variability between each dataset. For each of these randomly sampled
+bootstrap samples and subset of features from the original training data, a decision tree is indeuced.
+
+This process ensures that each decision tree in the random forest is trained on a unique combination of
+observations and features, resulting in diverse trees that capture different patterns.
 
 \subsection*{Question 7}
 
-TODO
+Regression trees can be either sensitive or robust to outliers depending on which statistic is used to form a final
+prediction of the regression tree.
+
+If the mean of all output features from each tree in the random forests
+is used as the statistic to calculate the prediction of the ensemble, the random forest is sensitive to outliers. The
+reasoning behind this is because the mean is directly influenced by extreme values. An outlier can skew the mean pulling it
+away from the central dendency of the true distribution, which makes the regression random forest sensitive to outliers.
+
+Conversely, if the median is used as the statistic to calculate the final output of the regression random forest model,
+then will the regression random forest model becomes robust to outliers.
+This is because the median is less affected by extreme values, whicch offers a more stable and robust prediction that
+better reflects the true central tendency of the data in the presence of outliers.
 
 \subsection*{Question 8}
 
-TODO
+The adaptive boosting algorithm is robust to outliers. The algorithm is robust to imbalanced classes
+as the model focuses more on incorrect predictions by lowering the weight of the associated correct predicted observations
+and increasing the weight of the associated incorrectly predicted observations. Therefore, if instances from the minority
+class are incorrectly classified as the majority class, the associated weights of these observations would be increased, placing
+more emphasis on these observations for the next decision stump to investigate. The weights of all incorrect predicted
+observations keeps on increasing if the predictions are incorrect, meaning that for even extreme inbalanced classes, the
+model would keep on increasing the weights of the incorrectly classsified minority class, until these observations
+are correctly classsified.
 
 \subsection*{Question 9}
 
-TODO
+Bagging result in reduced variance as the models in the ensmble are trained on a smaller
+subset of the original dataset. If random observations are sampled through the bootstrap
+sampling technique, then each model in the ensemble is trained on different subsets of the data,
+which leads to variations in the predictions of each model.
+
+If subsets of randomly selected features are used to fit the models in the ensemble, the models also becomes less prone
+to overfitting, thus reducing the variance of the model. The variation between each dataset allows models to focus more
+on a subset of features from the original dataset, allowing for more variation in the predictions of the model.
+
+By using the average or median in regression ensembles and majority voting in classification ensembles to create
+a final prediction of the ensemble, fluctuations and errors made by each individual mdoel is smoothed out,
+leading to more stable and robust predictions.
 
 \subsection*{Question 10}
 
-TODO
+By combining a number of weak learners, boosting can incrementally improve the performance of
+the ensemble, by targeting incorrect predictions made by previous learners. This iterative process
+allows that the ensemble to build a strong model through aggregation of multiple weak learners.
+The weak learners are also easy to interpret and has a very fast training speed. Overfitting is also
+reduced as the weak learners are trained to underfit the data, by only capturing basic patterns in the data.
+The ensemble maintains a level of generalisation ability by training these weak models to underfit the data, which
+might have been lost if more complex models were used.
 
 \section*{Section H: Reinforcement Learning}
 
