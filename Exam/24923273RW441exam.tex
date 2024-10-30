@@ -195,7 +195,15 @@ such as a classification tree that has to evaluate a greater number of categorie
 
 \subsubsection*{(a)}
 
-TODO
+Ditsribution b and e may indicate features with outliers.
+
+Distribution b could contain outliers, as the distribution is heavily skewed to the right. The majority of the
+values are between $[0-10]$, with a small amount of values that reaches $(25-40)$. These values could indicate
+extreme values according as they are far away from the majority of the statistics in the distribution, such
+as the mean, median and even the third quartile.
+
+Distribution e could also contain outliers, as the majority of the values are clustered around lower ranges, but a few
+of these values might extend to much higher values.
 
 \subsubsection*{(b)}
 
@@ -204,7 +212,26 @@ This feature has no predictive information relevant to the target feature and th
 
 \subsubsection*{(c)}
 
-TODO
+Features b, c, d and e will not be sensible to impute missing values with the mean.
+
+Feature b might contain outliers, and imputing values for a distribution that includes outliers
+could skew the central tendency. This skewing may lead to unreliable and inaccurate imputed values.
+Additionally, the distribution of Feature B is skewed to the right, with the median around 0.
+Imputing missing values using the mean would fail to accurately reflect the central tendency of the
+feature.
+
+Feature c is a bimodal distribution, which indicates that there are two separate groups or processes
+within the data. Therefore, to impute missing values with the mean of this feature is not ideal, as the
+mean may not accurately represent either of the underlying distributions.
+
+Feature d is a unique feature, that represents identification information, where mean values have no meaningful
+interpretation.
+
+Feature e might contain outliers, and imputing values for a distribution that includes outliers
+could skew the central tendency. This skewing may lead to unreliable and inaccurate imputed values.
+Additionally, the distribution of Feature E is slightly skewed to the right, with the median around 40000.
+Imputing missing values using the mean would fail to accurately reflect the central tendency of the
+feature.
 
 \section*{Section B: Information-based Learning}
 
@@ -390,7 +417,7 @@ d
 
 \subsection*{Question 3}
 
-c
+b
 
 \subsection*{Question 4}
 
@@ -561,7 +588,7 @@ performance as the linear activation function deployed in the hidden layer with 
 
 \subsection*{Question 1}
 
-a, d
+a, c, d
 
 \subsection*{Question 2}
 
@@ -663,6 +690,11 @@ SVM to separate the classes with one linear hyperplane. As the linear SVMs try t
 the maximum distance between the two classes, if there is noise present in the data, this maximum distance
 would be very small, which could then lead to poor generalisation and outliers having a higher influence on the data.
 
+Additionally, if there is too much noise contained in the data, the SVM would never converge. This is because
+the SVM algorithm is created to make no errors in the final model. There would be no optimal hyperplane to separate classes in the case
+where noise is contained in the middle of a different class or there is too much noise. Therefore, the algorithm would never converge, 
+as the SVM can not create an optimal hyperplane that splits all of the classes.
+
 \subsection*{Question 4}
 
 Soft margin hyperplanes with slack variables are introduced to ensure that linear SVMs can cope with noise.
@@ -693,25 +725,64 @@ to any noise in the dataset.
 
 \subsection*{Question 6}
 
-TODO 
+SVMs does not scale well to large datasets. This is because of computational
+complexity, memory requirements and training time.
 
-
+For computational complexity SVM algorithms relies on solving quadratic or cubic optimisation problems, with a complexity of
+$O(n^2)$ or $O(n^3)$ respectively, where $n$ is the number observations in the training data \cite{JMLR:2013}. This complexity arises from the need
+to compute pairwise relationships among data points to determine the optimal decision boundary.
+As the dataset size increases, the number of pairwise computations grows rapidly, leading to significant increases in training time and memory usage.
+Consequently, training an SVM on large datasets becomes impractical due to these high computational demands.
 
 \subsection*{Question 7}
 
-TODO
+Kernels are applied to map a dataset into a higher dimensional space, that which creates more complex representations of the data
+to be able to explore the non-linear relationships between features. The SVM is then constructed
+on this higher dimensional feature space to ensure that input features with non-linear relationships can be
+separated by a hyperplane in a higher dimension that maximises the margin betwen different classes.
 
 \subsection*{Question 8}
 
-TODO
+Both a Gaussian mixture model and a radial basis function neural network needs to decide on how
+many clusters there are going to be in the model. The number of clusters is denoted by $J$.
+
+A radial basis function neural network usually employs a Gaussian function as the kernel function used as the
+activation function in the hidden layer of the neural network.
+A single unit in the hidden layer of the neural network
+makes use of a vector of initial cluster centroids, denoted by $\boldsymbol{\mu}_j$ and a scalar deviation, denoted
+by $\sigma_j$ controls the width of the Gaussian and determines how quickly the influence of the neuron diminishes with distance from the centroid.
+This vector of cluster centroids are used as the weight vectors of the neural network, where
+the deviation is used as the bias. In a single neuron, the kernel function is then calculated and if the Gaussian function is used
+as the kernel function, then will the output of the neuron be a probability that represents the similarity of an instance
+to the associated cluster represented by the neuron.
+
+A Gaussian mixture model also makes use of the Gaussian functions to where each Gaussian represents a probability that the observation
+is associated to that cluster. Therefore, both models are similar as they make use of the Gaussian mixture model and
+effectively, the output of all the hidden neurons after applying the kernel function and applying softmax to these outputs
+can be used to represent a Gaussian mixture model.
 
 \subsection*{Question 9}
 
-TODO
+Support vector regression (SVR) algorithms are not robust to target outliers. The goal of the SVR algorithm
+is to minimise the mean squared error within a specific margin of tolerance, known as the $\epsilon$ margin.
+Outliers in the target values can fall outside of the $\epsilon$ margins, which results into the SVR assigning
+them large errors. These large errors increase the value of the mean squared error. The increased error then influences
+the position of the support vectors and potentially skewing the regression results toward the outliers. Although if
+a soft margin with slack variables are used, the SVR becomes more robust to target outliers, as some of the errors outside the
+$\epsilon$ margin is ignored.
 
 \subsection*{Question 10}
 
-TODO
+Support vector regression (SVR) is somewhat robust to noise. If the noisy instances fall within the error
+$\epsilon$ margin, then the SVR will be robust to noise as the noise flass within the bounds and can be used
+to calculate the linear regressor used to predict values. Conversely, if the noise falls outside of the $\epsilon$
+error margin, the SVR algorithm becomes sensitive to noise, as the noisy instances would be assigned errors. These errors
+would increase the value of the mean squared error. Therefore, since the mean squared error should be minimised, the
+SVR would adjust the positioning of the $\epsilon$ margin and therefore, will the regression be skewed towards the outlier.
+
+Therefore, a SVR is very dependend on the value of $\epsilon$. If the value of $\epsilon$ is large enough
+to ensure noise is contained within the $\epsilon$ margin, then will the SVR algorithm be robust to noise. Conversely
+if $\epsilon$ is too small such that noise falls outside of the $\epsilon$ margin, then will the SVR algorithm not be robust to noise. 
 
 \section*{Section G: Ensemble Learning}
 
@@ -812,7 +883,7 @@ better reflects the true central tendency of the data in the presence of outlier
 
 \subsection*{Question 8}
 
-The adaptive boosting algorithm is robust to outliers. The algorithm is robust to imbalanced classes
+The adaptive boosting algorithm is robust to skew class distributions. The algorithm is robust to imbalanced classes
 as the model focuses more on incorrect predictions by lowering the weight of the associated correct predicted observations
 and increasing the weight of the associated incorrectly predicted observations. Therefore, if instances from the minority
 class are incorrectly classified as the majority class, the associated weights of these observations would be increased, placing
