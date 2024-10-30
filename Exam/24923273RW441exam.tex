@@ -180,9 +180,6 @@ current or future data.
 
 \subsection*{Question 7}
 
-When binning is used to convert a numeric feature into a categorical feature, what are the consequences
-of too few bins versus too many bins?
-
 The consequences of using too few bins is that important information may be lost with respect to the
 distribution of values in the original continuous feature. This loss of information may lead to reduced
 predictive power of the model, as the small number of bins
@@ -219,7 +216,44 @@ e
 
 \subsubsection*{(a)}
 
-TODO
+Firstly, the equation used to calculate the entropy of the dataset $D$ is defined as following:
+\begin{equation*}
+    H(D) = - \sum_{m=1}^{M} p(y_m)log_M \left( p(y_m) \right)
+\end{equation*}
+where the probability of a class $y_m$ occuring in $D$ is given as
+\begin{equation*}
+    p(y_m) = \frac{\text{freq}(y_m, D)}{|D|}
+\end{equation*}
+where $M$ is the number of classes, and $\text{freq}(y_m, D)$ is the number of times that class $y_m$
+occurs in $D$.
+
+The calculation of the question is then as follows.
+\begin{eqnarray*}
+    p(2) &=& \frac{1}{8} \\
+    p(3) &=& \frac{1}{8} \\
+    p(4) &=& \frac{1}{8} \\
+    p(5) &=& \frac{1}{8} \\
+    p(6) &=& \frac{2}{8} \\
+    p(7) &=& \frac{1}{8} \\
+    p(8) &=& \frac{1}{8} \\
+\end{eqnarray*}
+
+\begin{eqnarray*}
+    p(2) log_7 \left( p(2) \right) = \frac{1}{8} log_7 \left( \frac{1}{8} \right) &=& -0.1335776952\\
+    p(3) log_7 \left( p(3) \right) = \frac{1}{8} log_7 \left( \frac{1}{8} \right) &=& -0.1335776952\\
+    p(4) log_7 \left( p(4) \right) = \frac{1}{8} log_7 \left( \frac{1}{8} \right) &=& -0.1335776952\\
+    p(5) log_7 \left( p(5) \right) = \frac{1}{8} log_7 \left( \frac{1}{8} \right) &=& -0.1335776952\\
+    p(6) log_7 \left( p(6) \right) = \frac{2}{8} log_7 \left( \frac{2}{8} \right) &=& -0.1781035936\\
+    p(7) log_7 \left( p(7) \right) = \frac{1}{8} log_7 \left( \frac{1}{8} \right) &=& -0.1335776952\\
+    p(8) log_7 \left( p(8) \right) = \frac{1}{8} log_7 \left( \frac{1}{8} \right) &=& -0.1335776952\\
+\end{eqnarray*}
+
+\begin{eqnarray*}
+    H(D) &=& - \sum_{m=1}^{7} p(y_m) log_7 \left( p(y_m) \right) \\
+    H(D) &=& - \left( 6\times(-0.1335776952) + (-0.1781035936) \right) \\
+    H(D) &=& - (-0.9795697645) \\
+    H(D) &=& 0.9795697645
+\end{eqnarray*}
 
 \subsubsection*{(b)}
 
@@ -236,7 +270,7 @@ consequence of this is that more complex trees are needed if the true decision b
 parallel to the axes. This inductive bias can be addressed by using oblique trees.
 
 The second inductive bias is that the tree is induced to overfit the training data. Meaning that
-the tree creates decision boundaries until all of the classes are seperated and achieves a
+the tree creates decision boundaries until all of the classes are separated and achieves a
 perfect score on the training data. The consequence of this inductive bias is that the
 tree generalises poorly to unseen data. This inductive bias can be addressed by either pruning the
 tree while it is being induced or by pruning the induced tree.
@@ -404,7 +438,7 @@ path, meaning that more significant evidence is needed to jump over to the other
 \subsection*{Question 7}
 
 This statement is false, because if the net input signal is calculated by use of product units, the single
-neuron can seperate non-linearly separable classes. The mathmatical equation used to calculate the product units
+neuron can separate non-linearly separable classes. The mathmatical equation used to calculate the product units
 is as follows.
 \begin{equation}
     net = \prod_{i=1}^{I} x_{i}^{w_i}
@@ -443,7 +477,11 @@ values in the training data, than the classical optimisation techniques such as 
 \subsection*{Question 10}
 
 Active learning in neural networks is driven by the need to enhance training efficiency and improve model
-generalisation. The first rationale behind active learning is to efficiently use the data. This rationale
+generalisation. Active learning is any form of learning in which the learning algorithm has some control
+over what part of the input space it receives information from, to ensure that the most optimal information
+is used when training the neural network model.
+
+The first rationale behind active learning is to efficiently use the data. This rationale
 is based on active learning that allows the neural network to select the most informative examples in the
 dataset for training. Less data is then used to construct the model, which leads to faster convergence and
 training time.
@@ -456,7 +494,7 @@ its performance on new, unseen inputs.
 \subsection*{Question 11}
 
 A linear logistic regression model can not separate the two classes. However a non-linear logistic regression
-model will be able to seperate the two classes.
+model will be able to separate the two classes.
 
 The non-linear logistic regression model can capture the underlying relationship between the two
 descriptive features $x_1$ and $x_2$ if they are transformed by use of sine and cosine as basis functions. Therefore
@@ -489,16 +527,24 @@ classes of the target feature. The 5 one-versus-all models would then be the fol
     \item Logistic regression model 5: classify class 4 against the other classes
 \end{itemize}
 This multinomial logistic regression model will then construct 4 decision boundaries combined from each
-models decision boundary to seperated these classes into 5 segments, where each segment contains all the
+models decision boundary to separated these classes into 5 segments, where each segment contains all the
 observations of one class.
 
 \subsection*{Question 13}
 
-TODO
+Neural networks that use bounded activation functions show limited robustness to variations in input feature scale.
+While scaling input features to the same range is not necessary, it is recommended to do so to improve model
+performance and generalisation. By scaling inputs to align with the activation function's active domain, the
+network can avoid regions where gradients are near zero, leading to vanishing gradients, which helps facilitate
+learning and reduces the risk of poor model performance due to the input features having the same range.
 
 \subsection*{Question 14}
 
-TODO
+Larger gradients will be created when the control parameter that controls the steepness of the activation function is increased.
+This can help to mitigate the vanishing gradient problem and more complex relationships between descriptive features can be learned,
+as neurons become more sensitive to important distinctions.
+Additionally, the model also converges and trains faster, as the neurons in the hidden layer better identify the most informative features
+for the classification task at hand.
 
 \subsection*{Question 15}
 
@@ -523,7 +569,28 @@ TODO
 
 \subsection*{Question 3}
 
-TODO
+The first approach that can be used is by making use of batch maps. A batch map aims to reduce
+the number of weight updates by only updating weight values after all patterns have been presented.
+This helps to negate the effect of the stochastic training of the SOM, ensuring faster convergence
+speed and faster training.
+
+The second approach that can be used is by modifying the neighbourhood function. Applying the
+Gaussian function ensures that every codebook vector will be updates in each iteration.
+This can be computationally expensive and use a lot of memory. By using a clipped Gaussian function
+as the neighbourhood function, the number of updates of the codebook vectors is reduced and ensures
+faster convergence speed and that the SOM uses less memory. A dynamic width is then also applied to
+the neighbourhood function with the equation of
+\begin{equation*}
+    \sigma (t) = \sigma(0)e^{-t \div \tau_1}
+\end{equation*}
+where $\tau_1$ is a positive constant and $\sigma(0)$ is the initial large variance.
+This will ensure faster convergence and training speeds.
+
+The last approach that can be used is by making use of a shortcut technique to determine the winner.
+Once each instance in the trainig data is assigned to a winning neuron, in the next iteration
+of the SOM, we search for the winning neuron of a data instance in the neighbourhood of the
+previous winning neuron and if the new winning neuron is not on the edge of the neighbourhood in
+which searching was performed, the search stops. This leads to faster convergence and training times.
 
 \subsection*{Question 4}
 
@@ -531,11 +598,18 @@ TODO
 
 \subsection*{Question 5}
 
-TODO
+The SOM is robust to missing values as it simply ignores the features that contains the missing values
+in the distance calculation. Therefore, a winning neuron can be found for the instance that contains
+the missing values. The missing value can then be replaced by either the value of the corresponding
+value of the codebook vector of the winning neuron, the average of the neighbouring values, the average
+of the entire cluster, or the neighbourhood function weighted average.
 
 \subsection*{Question 6}
 
-TODO
+The goal of unsupervised learning is to discover patterns, relationships or structures in the input data
+without the need for labeled outputs or target values. Instead of aiming to predict a specific outcome,
+unsupervised learning algorithms seek to organise or transform the data to uncover hidden structures
+in the data.
 
 \subsection*{Question 7}
 
@@ -565,27 +639,63 @@ TODO
 
 \subsection*{Question 1}
 
-TODO
+The inductive bias of linear support vector machines is that the alogorithm
+assumes the data can be linear separable by using a straight hyperplane.
 
 \subsection*{Question 2}
 
-TODO
+The maximum margin approach of support vector machine is based on the principle
+that the best decision boundary between classes is the one that maximises the distance from the
+boundary to the nearest points in each class. The main rationale behind this is that the
+maximum margin approach of support vector machine improves generalisation of the algorithm on unseen
+data, the SVM becomes more robust to outliers.
+
+Therefore, the main rationale behind the maximum margin approach of support vector machine
+is to vind a set of support vectors that are the most influencial instances, to construct an optimal
+hyperplane between the two classes to ensure for the best possible generalisation performance and
+creates a SVM algorithm that is more robust to outliers.
 
 \subsection*{Question 3}
 
-TODO
+The consequence of noise in the linear SVM algorithm is that
+the maximum margin between the two classes will become more narrow. It is not possible for a linear
+SVM to separate the classes with one linear hyperplane. As the linear SVMs try to find
+the maximum distance between the two classes, if there is noise present in the data, this maximum distance
+would be very small, which could then lead to poor generalisation and outliers having a higher influence on the data.
 
 \subsection*{Question 4}
 
-TODO
+Soft margin hyperplanes with slack variables are introduced to ensure that linear SVMs can cope with noise.
+Soft margin hyperplanes allows for errors to be made by the linear SVM algorithm to ensure the linear
+SVM is more robust to noise. The number of errors which the linear SVM algorithm can make is specified
+by the slack variable. The slack variable is used in conjunction with a penalty function to ensure that
+the linear SVM can make mistakes. The higher the value of the slack variable, the more errors can be made by the
+linear SVM, which leads to a linear SVM algorithm that is more robust to noise. The new objective of the linear SVM then becomes
+the minimisation of the sum of squared errors with the addition of the penalty term and then to maximise the margin.
 
 \subsection*{Question 5}
 
-TODO
+The advantages to this approach is that the linear SVM algorithm becomes more robust to noise,
+improves generalisation and allows for a larger margin between classes. This is due to the penalty term
+that allows the algorithm to make a few mistakes to ensure that noise has little to no affect when the
+margin is constructed. When this margin is then constructed, the noisy instances are ignored, allowing
+for a larger distance margin, as the distance between the two nearest points of the two classes becomes
+larger. Therefore, the generalisation of the algorithm improves for unseen data.
+
+The disadvantages to this approach is that the algorithm adds an additional penalty term
+to objective function, which increases complexity and creates longer training times.
+The performance of the model can be sensitive to the choice of the slack variable. Therefore, another disadvantage
+is that the slack variable is problem depended, which means an optimal value of the slack value should
+be found for each problem, which could be computationally and resource intensive. If the slack variable
+is too large of a value, then too much errors can be made, which could lead to a SVM model that has
+too large of a margin, and if the slack variable is too small, the model becomes sensitive
+to any noise in the dataset.
 
 \subsection*{Question 6}
 
-TODO
+TODO 
+
+
 
 \subsection*{Question 7}
 
